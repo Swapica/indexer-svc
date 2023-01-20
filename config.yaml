@@ -1,0 +1,12 @@
+log:
+  level: debug
+  disable_sentry: true
+
+db:
+  url: db_url
+
+network:
+  rpc: "http://rpc-proxy/integrations/rpc-proxy/goerli"
+  contract: "Swapica address"
+  chain_name: "goerli"
+  request_timeout: 3s
