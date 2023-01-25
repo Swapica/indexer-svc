@@ -2,8 +2,9 @@ log:
   level: debug
   disable_sentry: true
 
-db:
-  url: db_url
+collector:
+  endpoint: "http://order-aggregator/integrations/order-aggregator"
+  request_timeout: 1s
 
 network:
   rpc: "http://rpc-proxy/integrations/rpc-proxy/goerli"

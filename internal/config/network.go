@@ -20,7 +20,7 @@ type Network struct {
 const defaultRequestTimeout = 10 * time.Second
 
 func (c *config) Network() Network {
-	return c.once.Do(func() interface{} {
+	return c.networkOnce.Do(func() interface{} {
 		var cfg struct {
 			RPC            string         `fig:"rpc,required"`
 			Contract       common.Address `fig:"contract,required"`
