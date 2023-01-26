@@ -11,7 +11,7 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (r indexer) indexMatch(ctx context.Context, evt *gobind.SwapicaMatchUpdated) error {
+func (r *indexer) indexMatch(ctx context.Context, evt *gobind.SwapicaMatchUpdated) error {
 	childCtx, cancel := context.WithTimeout(ctx, r.requestTimeout)
 	defer cancel()
 
@@ -32,7 +32,7 @@ func (r indexer) indexMatch(ctx context.Context, evt *gobind.SwapicaMatchUpdated
 	return errors.Wrap(err, "failed to update match order status")
 }
 
-func (r indexer) addMatch(ctx context.Context, id *big.Int, status gobind.SwapicaStatus) error {
+func (r *indexer) addMatch(ctx context.Context, id *big.Int, status gobind.SwapicaStatus) error {
 	childCtx, cancel := context.WithTimeout(ctx, r.requestTimeout)
 	defer cancel()
 
@@ -68,7 +68,7 @@ func (r indexer) addMatch(ctx context.Context, id *big.Int, status gobind.Swapic
 	return errors.Wrap(err, "failed to add match order into collector service")
 }
 
-func (r indexer) updateMatchStatus(ctx context.Context, id *big.Int, status gobind.SwapicaStatus) error {
+func (r *indexer) updateMatchStatus(ctx context.Context, id *big.Int, status gobind.SwapicaStatus) error {
 	body := resources.UpdateMatchRequest{
 		Data: resources.UpdateMatch{
 			Key: resources.Key{

@@ -55,74 +55,32 @@ func newIndexer(c config.Config, lastBlock uint64) indexer {
 	}
 }
 
-func (r indexer) run(ctx context.Context) error {
-	childCtx, cancel := context.WithTimeout(ctx, r.requestTimeout)
-	defer cancel()
-	opts := &bind.FilterOpts{Context: childCtx, Start: r.lastBlock}
-
-	it, err := r.swapica.FilterOrderUpdated(opts, nil, nil)
-	if err != nil {
-		return errors.Wrap(err, "failed to filter OrderUpdated events")
-	}
-
-	changedLastBlock := false
+func (r *indexer) run(ctx context.Context) error {
+	lastBlockUpd := false
 	defer func() {
-		if changedLastBlock {
+		if lastBlockUpd {
 			log := r.log.WithField("last_block", r.lastBlock)
-			if err = r.saveLastBlock(ctx); err != nil {
+			if err := r.saveLastBlock(ctx); err != nil {
 				log.WithError(err).Error("failed to save last block")
 			}
 			log.Info("successfully saved last block")
 		}
 	}()
 
-	// Warn: this logic may get stuck in various cases, think it over
-	r.log.Debug("filtering OrderUpdated events")
-	for {
-		if !it.Next() {
-			// Filtering events from the latest event's block instead of the latest confirmed one may be slower
-			// However, an error may occur before the last event is saved, so all those next events will be lost
-			if b := it.Event.Raw.BlockNumber + 1; b > r.lastBlock {
-				r.lastBlock = b
-				changedLastBlock = true
-			}
-			if err = it.Error(); err != nil {
-				return errors.Wrap(err, "error occurred while filtering OrderUpdated events")
-			}
-			break
-		}
-		if err = r.indexOrder(ctx, it.Event); err != nil {
-			return errors.Wrap(err, "failed to index order")
-		}
-	}
+	childCtx, cancel := context.WithTimeout(ctx, r.requestTimeout)
+	defer cancel()
+	opts := &bind.FilterOpts{Context: childCtx, Start: r.lastBlock}
 
-	matchIt, err := r.swapica.FilterMatchUpdated(opts, nil, nil)
+	lastBlockUpd, err := r.handleOrderEvents(ctx, opts)
 	if err != nil {
-		return errors.Wrap(err, "failed to filter MatchUpdated events")
+		return errors.Wrap(err, "failed to handle order events")
 	}
-
-	r.log.Debug("filtering MatchUpdated events")
-	for {
-		if !matchIt.Next() {
-			r.lastBlock = matchIt.Event.Raw.BlockNumber
-			if mb := matchIt.Event.Raw.BlockNumber; mb > r.lastBlock {
-				r.lastBlock = mb + 1
-				changedLastBlock = true
-			}
-			if err = matchIt.Error(); err != nil {
-				return errors.Wrap(err, "error occurred while filtering MatchUpdated events")
-			}
-			break
-		}
-		if err = r.indexMatch(ctx, matchIt.Event); err != nil {
-			return errors.Wrap(err, "failed to index match order")
-		}
-	}
-
-	return nil
+	matchUpd, err := r.handleMatchEvents(ctx, opts)
+	lastBlockUpd = lastBlockUpd || matchUpd
+	return errors.Wrap(err, "failed to handle match order events")
 }
 
-func (r indexer) saveLastBlock(ctx context.Context) error {
+func (r *indexer) saveLastBlock(ctx context.Context) error {
 	body := resources.BlockResponse{
 		Data: resources.Block{
 			Key: resources.Key{
@@ -134,4 +92,45 @@ func (r indexer) saveLastBlock(ctx context.Context) error {
 
 	err := r.collector.PostJSON(r.blockURL, body, ctx, nil)
 	return errors.Wrap(err, "failed to set last block in collector")
+}
+
+func (r *indexer) handleOrderEvents(ctx context.Context, opts *bind.FilterOpts) (lastBlockUpdated bool, err error) {
+	it, err := r.swapica.FilterOrderUpdated(opts, nil, nil)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to filter OrderUpdated events")
+	}
+
+	// Warn: this logic may get stuck in various cases, think it over
+	for it.Next() {
+		if err = r.indexOrder(ctx, it.Event); err != nil {
+			return lastBlockUpdated, errors.Wrap(err, "failed to index order")
+		}
+
+		if b := it.Event.Raw.BlockNumber + 1; b > r.lastBlock {
+			r.lastBlock = b
+			lastBlockUpdated = true
+		}
+	}
+
+	return lastBlockUpdated, errors.Wrap(it.Error(), "error occurred while iterating over OrderUpdated events")
+}
+
+func (r *indexer) handleMatchEvents(ctx context.Context, opts *bind.FilterOpts) (lastBlockUpdated bool, err error) {
+	it, err := r.swapica.FilterMatchUpdated(opts, nil, nil)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to filter MatchUpdated events")
+	}
+
+	for it.Next() {
+		if err = r.indexMatch(ctx, it.Event); err != nil {
+			return lastBlockUpdated, errors.Wrap(err, "failed to index match order")
+		}
+
+		if mb := it.Event.Raw.BlockNumber + 1; mb > r.lastBlock {
+			r.lastBlock = mb
+			lastBlockUpdated = true
+		}
+	}
+
+	return lastBlockUpdated, errors.Wrap(it.Error(), "error occurred while iterating over MatchUpdated events")
 }

@@ -11,7 +11,7 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (r indexer) indexOrder(ctx context.Context, evt *gobind.SwapicaOrderUpdated) error {
+func (r *indexer) indexOrder(ctx context.Context, evt *gobind.SwapicaOrderUpdated) error {
 	childCtx, cancel := context.WithTimeout(ctx, r.requestTimeout)
 	defer cancel()
 
@@ -32,7 +32,7 @@ func (r indexer) indexOrder(ctx context.Context, evt *gobind.SwapicaOrderUpdated
 	return errors.Wrap(err, "failed to update order status")
 }
 
-func (r indexer) addOrder(ctx context.Context, id *big.Int, status gobind.SwapicaStatus) error {
+func (r *indexer) addOrder(ctx context.Context, id *big.Int, status gobind.SwapicaStatus) error {
 	childCtx, cancel := context.WithTimeout(ctx, r.requestTimeout)
 	defer cancel()
 
@@ -66,7 +66,7 @@ func (r indexer) addOrder(ctx context.Context, id *big.Int, status gobind.Swapic
 	return errors.Wrap(err, "failed to add order into collector service")
 }
 
-func (r indexer) updateOrderStatus(ctx context.Context, id *big.Int, status gobind.SwapicaStatus) error {
+func (r *indexer) updateOrderStatus(ctx context.Context, id *big.Int, status gobind.SwapicaStatus) error {
 	matchSwapica := status.MatchSwapica.String()
 	body := resources.UpdateOrderRequest{
 		Data: resources.UpdateOrder{

@@ -28,7 +28,7 @@ func (s *service) run() error {
 		return errors.Wrap(err, "failed to get last block")
 	}
 
-	s.log.Infof("starting listening events from the block %d", last)
+	s.log.Infof("going to listen events from the block number %d", last)
 	runner := newIndexer(s.cfg, last)
 	running.WithBackOff(context.Background(), s.log, "indexer", runner.run, ethBlockPeriod, time.Second, time.Minute)
 
