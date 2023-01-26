@@ -3,10 +3,12 @@ package service
 import (
 	"context"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/Swapica/order-indexer-svc/internal/config"
 	"github.com/Swapica/order-indexer-svc/internal/gobind"
+	"github.com/Swapica/order-indexer-svc/resources"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	jsonapi "gitlab.com/distributed_lab/json-api-connector"
 	"gitlab.com/distributed_lab/logan/v3"
@@ -16,6 +18,7 @@ import (
 const (
 	orderStateAwaitingMatch        uint8 = 1
 	orderStateAwaitingFinalization uint8 = 2
+	ethBlockPeriod                       = 10 * time.Second
 )
 
 type indexer struct {
@@ -43,7 +46,7 @@ func newIndexer(c config.Config, lastBlock uint64) indexer {
 		log:            c.Log(),
 		swapica:        c.Network().Swapica,
 		collector:      c.Collector(),
-		chainName:      c.Network().ChainName,
+		chainName:      chain,
 		requestTimeout: c.Network().RequestTimeout,
 		lastBlock:      lastBlock,
 		blockURL:       block,
@@ -59,32 +62,43 @@ func (r indexer) run(ctx context.Context) error {
 
 	it, err := r.swapica.FilterOrderUpdated(opts, nil, nil)
 	if err != nil {
-		return errors.Wrap(err, "failed to filter OrderUpdated event")
+		return errors.Wrap(err, "failed to filter OrderUpdated events")
 	}
+
+	changedLastBlock := false
+	defer func() {
+		if changedLastBlock {
+			log := r.log.WithField("last_block", r.lastBlock)
+			if err = r.saveLastBlock(ctx); err != nil {
+				log.WithError(err).Error("failed to save last block")
+			}
+			log.Info("successfully saved last block")
+		}
+	}()
 
 	// Warn: this logic may get stuck in various cases, think it over
 	r.log.Debug("filtering OrderUpdated events")
 	for {
 		if !it.Next() {
-			r.lastBlock = it.Event.Raw.BlockNumber + 1
-			// not the best way, because I want to save the LATEST block if no events were found
+			// Filtering events from the latest event's block instead of the latest confirmed one may be slower
+			// However, an error may occur before the last event is saved, so all those next events will be lost
+			if b := it.Event.Raw.BlockNumber + 1; b > r.lastBlock {
+				r.lastBlock = b
+				changedLastBlock = true
+			}
 			if err = it.Error(); err != nil {
 				return errors.Wrap(err, "error occurred while filtering OrderUpdated events")
 			}
 			break
 		}
 		if err = r.indexOrder(ctx, it.Event); err != nil {
-			// var err error
-			// err = ...
-			// break
 			return errors.Wrap(err, "failed to index order")
-			// same notes are related to the following below
 		}
 	}
 
 	matchIt, err := r.swapica.FilterMatchUpdated(opts, nil, nil)
 	if err != nil {
-		return errors.Wrap(err, "failed to filter OrderUpdated event")
+		return errors.Wrap(err, "failed to filter MatchUpdated events")
 	}
 
 	r.log.Debug("filtering MatchUpdated events")
@@ -93,6 +107,7 @@ func (r indexer) run(ctx context.Context) error {
 			r.lastBlock = matchIt.Event.Raw.BlockNumber
 			if mb := matchIt.Event.Raw.BlockNumber; mb > r.lastBlock {
 				r.lastBlock = mb + 1
+				changedLastBlock = true
 			}
 			if err = matchIt.Error(); err != nil {
 				return errors.Wrap(err, "error occurred while filtering MatchUpdated events")
@@ -104,6 +119,19 @@ func (r indexer) run(ctx context.Context) error {
 		}
 	}
 
-	// set last block wisely, when errors occur; try with defer
 	return nil
+}
+
+func (r indexer) saveLastBlock(ctx context.Context) error {
+	body := resources.BlockResponse{
+		Data: resources.Block{
+			Key: resources.Key{
+				ID:   strconv.FormatUint(r.lastBlock, 10),
+				Type: resources.BLOCK,
+			},
+		},
+	}
+
+	err := r.collector.PostJSON(r.blockURL, body, ctx, nil)
+	return errors.Wrap(err, "failed to set last block in collector")
 }
