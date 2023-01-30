@@ -9,5 +9,5 @@ collector:
 network:
   rpc: "http://rpc-proxy/integrations/rpc-proxy/goerli"
   contract: "Swapica address"
-  chain_name: "goerli"
+  chain_id: 5
   request_timeout: 3s

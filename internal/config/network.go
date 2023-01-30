@@ -1,6 +1,8 @@
 package config
 
 import (
+	"math"
+	"strconv"
 	"time"
 
 	"github.com/Swapica/order-indexer-svc/internal/gobind"
@@ -13,18 +15,19 @@ import (
 
 type Network struct {
 	*gobind.Swapica
-	ChainName      string
+	ChainID        string
 	RequestTimeout time.Duration
 }
 
 const defaultRequestTimeout = 10 * time.Second
+const maxChainID int64 = math.MaxUint64/2 - 36
 
 func (c *config) Network() Network {
 	return c.networkOnce.Do(func() interface{} {
 		var cfg struct {
 			RPC            string         `fig:"rpc,required"`
 			Contract       common.Address `fig:"contract,required"`
-			ChainName      string         `fig:"chain_name,required"`
+			ChainID        int64          `fig:"chain_id,required"`
 			RequestTimeout time.Duration  `fig:"request_timeout"`
 		}
 
@@ -36,6 +39,9 @@ func (c *config) Network() Network {
 			panic(errors.Wrap(err, "failed to figure out network"))
 		}
 
+		if cfg.ChainID > maxChainID || cfg.ChainID <= 0 {
+			panic("chain_id value out of range due to EIP 2294")
+		}
 		cli, err := ethclient.Dial(cfg.RPC)
 		if err != nil {
 			panic(errors.Wrap(err, "failed to connect to RPC provider"))
@@ -51,7 +57,7 @@ func (c *config) Network() Network {
 
 		return Network{
 			Swapica:        s,
-			ChainName:      cfg.ChainName,
+			ChainID:        strconv.FormatInt(cfg.ChainID, 10),
 			RequestTimeout: cfg.RequestTimeout,
 		}
 	}).(Network)

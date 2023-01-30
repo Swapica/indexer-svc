@@ -26,7 +26,6 @@ type indexer struct {
 	swapica   *gobind.Swapica
 	collector *jsonapi.Connector
 
-	chainName      string
 	requestTimeout time.Duration
 	lastBlock      uint64
 
@@ -34,7 +33,7 @@ type indexer struct {
 }
 
 func newIndexer(c config.Config, lastBlock uint64) indexer {
-	chain := c.Network().ChainName
+	chain := c.Network().ChainID
 	block, err := url.Parse(chain + "/block")
 	if err != nil {
 		panic(errors.Wrap(err, "failed to parse URL"))
@@ -46,7 +45,6 @@ func newIndexer(c config.Config, lastBlock uint64) indexer {
 		log:            c.Log(),
 		swapica:        c.Network().Swapica,
 		collector:      c.Collector(),
-		chainName:      chain,
 		requestTimeout: c.Network().RequestTimeout,
 		lastBlock:      lastBlock,
 		blockURL:       block,

@@ -37,7 +37,7 @@ func (s *service) run() error {
 
 func newService(cfg config.Config) *service {
 	return &service{
-		log: cfg.Log().WithField("chain", cfg.Network().ChainName),
+		log: cfg.Log().WithField("chain", cfg.Network().ChainID),
 		cfg: cfg,
 	}
 }
@@ -49,7 +49,7 @@ func Run(cfg config.Config) {
 }
 
 func (s *service) getLastBlock() (uint64, error) {
-	raw := s.cfg.Network().ChainName + "/block"
+	raw := s.cfg.Network().ChainID + "/block"
 	path, err := url.Parse(raw)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to parse endpoint", map[string]interface{}{"url": raw})
