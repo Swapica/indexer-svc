@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"net/http"
 	"net/url"
 	"strconv"
 	"time"
@@ -11,15 +12,18 @@ import (
 	"github.com/Swapica/indexer-svc/resources"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	jsonapi "gitlab.com/distributed_lab/json-api-connector"
+	"gitlab.com/distributed_lab/json-api-connector/cerrors"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
 const (
-	orderStateAwaitingMatch        uint8 = 1
-	orderStateAwaitingFinalization uint8 = 2
-	ethBlockPeriod                       = 10 * time.Second
+	orderStateNone uint8 = iota
+	orderStateAwaitingMatch
+	orderStateAwaitingFinalization
 )
+
+const ethBlockPeriod = 10 * time.Second
 
 type indexer struct {
 	log       *logan.Entry
@@ -98,7 +102,6 @@ func (r *indexer) handleOrderEvents(ctx context.Context, opts *bind.FilterOpts) 
 		return false, errors.Wrap(err, "failed to filter OrderUpdated events")
 	}
 
-	// Warn: this logic may get stuck in various cases, think it over
 	for it.Next() {
 		if err = r.indexOrder(ctx, it.Event); err != nil {
 			return lastBlockUpdated, errors.Wrap(err, "failed to index order")
@@ -131,4 +134,9 @@ func (r *indexer) handleMatchEvents(ctx context.Context, opts *bind.FilterOpts) 
 	}
 
 	return lastBlockUpdated, errors.Wrap(it.Error(), "error occurred while iterating over MatchUpdated events")
+}
+
+func isConflict(err error) bool {
+	c, ok := err.(cerrors.Error)
+	return ok && c.Status() == http.StatusConflict
 }

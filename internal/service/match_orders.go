@@ -26,6 +26,10 @@ func (r *indexer) indexMatch(ctx context.Context, evt *gobind.SwapicaMatchUpdate
 		err = r.addMatch(ctx, evt.Id, status)
 		return errors.Wrap(err, "failed to add created match order")
 	}
+	if status.State == orderStateNone {
+		log.Warn("found match order with state NONE, skipping it")
+		return nil
+	}
 
 	log.Debug("match order must exist, updating its status")
 	err = r.updateMatchStatus(ctx, evt.Id, status)
@@ -65,6 +69,11 @@ func (r *indexer) addMatch(ctx context.Context, id *big.Int, status gobind.Swapi
 	}
 
 	err = r.collector.PostJSON(r.matchesURL, body, ctx, nil)
+	if isConflict(err) {
+		r.log.WithField("match_id", mo.Id.String()).
+			Warn("match order already exists in collector DB, skipping it")
+		return nil
+	}
 	return errors.Wrap(err, "failed to add match order into collector service")
 }
 

@@ -26,6 +26,10 @@ func (r *indexer) indexOrder(ctx context.Context, evt *gobind.SwapicaOrderUpdate
 		err = r.addOrder(ctx, evt.Id, status)
 		return errors.Wrap(err, "failed to add created order")
 	}
+	if status.State == orderStateNone {
+		log.Warn("found order with state NONE, skipping it")
+		return nil
+	}
 
 	log.Debug("order must exist, updating its status")
 	err = r.updateOrderStatus(ctx, evt.Id, status)
@@ -63,6 +67,11 @@ func (r *indexer) addOrder(ctx context.Context, id *big.Int, status gobind.Swapi
 	}
 
 	err = r.collector.PostJSON(r.ordersURL, body, ctx, nil)
+	if isConflict(err) {
+		r.log.WithField("order_id", o.Id.String()).
+			Warn("order already exists in collector DB, skipping it")
+		return nil
+	}
 	return errors.Wrap(err, "failed to add order into collector service")
 }
 
