@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Swapica/order-indexer-svc/internal/gobind"
+	"github.com/Swapica/indexer-svc/internal/gobind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"gitlab.com/distributed_lab/figure/v3"

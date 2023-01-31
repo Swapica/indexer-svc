@@ -4,8 +4,8 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/Swapica/order-indexer-svc/internal/gobind"
-	"github.com/Swapica/order-indexer-svc/resources"
+	"github.com/Swapica/indexer-svc/internal/gobind"
+	"github.com/Swapica/indexer-svc/resources"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"

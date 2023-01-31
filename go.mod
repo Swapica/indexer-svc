@@ -1,4 +1,4 @@
-module github.com/Swapica/order-indexer-svc
+module github.com/Swapica/indexer-svc
 
 go 1.19
 

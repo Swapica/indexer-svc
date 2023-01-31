@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"github.com/Swapica/order-indexer-svc/internal/config"
-	"github.com/Swapica/order-indexer-svc/internal/service"
+	"github.com/Swapica/indexer-svc/internal/config"
+	"github.com/Swapica/indexer-svc/internal/service"
 	"github.com/alecthomas/kingpin"
 	"gitlab.com/distributed_lab/kit/kv"
 	"gitlab.com/distributed_lab/logan/v3"

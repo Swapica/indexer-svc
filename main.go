@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/Swapica/order-indexer-svc/internal/cli"
+	"github.com/Swapica/indexer-svc/internal/cli"
 )
 
 func main() {

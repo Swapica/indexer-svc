@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Swapica/order-indexer-svc/internal/config"
-	"github.com/Swapica/order-indexer-svc/internal/gobind"
-	"github.com/Swapica/order-indexer-svc/resources"
+	"github.com/Swapica/indexer-svc/internal/config"
+	"github.com/Swapica/indexer-svc/internal/gobind"
+	"github.com/Swapica/indexer-svc/resources"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	jsonapi "gitlab.com/distributed_lab/json-api-connector"
 	"gitlab.com/distributed_lab/logan/v3"

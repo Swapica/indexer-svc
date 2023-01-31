@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Swapica/order-indexer-svc/internal/config"
-	"github.com/Swapica/order-indexer-svc/resources"
+	"github.com/Swapica/indexer-svc/internal/config"
+	"github.com/Swapica/indexer-svc/resources"
 	"gitlab.com/distributed_lab/json-api-connector/cerrors"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
