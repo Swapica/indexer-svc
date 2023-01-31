@@ -23,8 +23,6 @@ const (
 	orderStateAwaitingFinalization
 )
 
-const ethBlockPeriod = 10 * time.Second
-
 type indexer struct {
 	log       *logan.Entry
 	swapica   *gobind.Swapica

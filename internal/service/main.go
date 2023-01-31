@@ -30,7 +30,8 @@ func (s *service) run() error {
 
 	s.log.Infof("going to listen events from the block number %d", last)
 	runner := newIndexer(s.cfg, last)
-	running.WithBackOff(context.Background(), s.log, "indexer", runner.run, ethBlockPeriod, time.Second, time.Minute)
+	running.WithBackOff(context.Background(), s.log, "indexer", runner.run,
+		s.cfg.Network().IndexPeriod, time.Second/2, time.Minute)
 
 	return nil
 }

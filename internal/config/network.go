@@ -16,6 +16,7 @@ import (
 type Network struct {
 	*gobind.Swapica
 	ChainID        string
+	IndexPeriod    time.Duration
 	RequestTimeout time.Duration
 }
 
@@ -28,6 +29,7 @@ func (c *config) Network() Network {
 			RPC            string         `fig:"rpc,required"`
 			Contract       common.Address `fig:"contract,required"`
 			ChainID        int64          `fig:"chain_id,required"`
+			IndexPeriod    time.Duration  `fig:"index_period,required"`
 			RequestTimeout time.Duration  `fig:"request_timeout"`
 		}
 
@@ -58,6 +60,7 @@ func (c *config) Network() Network {
 		return Network{
 			Swapica:        s,
 			ChainID:        strconv.FormatInt(cfg.ChainID, 10),
+			IndexPeriod:    cfg.IndexPeriod,
 			RequestTimeout: cfg.RequestTimeout,
 		}
 	}).(Network)
