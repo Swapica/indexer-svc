@@ -9,7 +9,7 @@ import (
 
 	"github.com/Swapica/indexer-svc/internal/config"
 	"github.com/Swapica/indexer-svc/internal/gobind"
-	"github.com/Swapica/indexer-svc/resources"
+	"github.com/Swapica/order-aggregator-svc/resources"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	jsonapi "gitlab.com/distributed_lab/json-api-connector"
 	"gitlab.com/distributed_lab/json-api-connector/cerrors"
@@ -23,35 +23,26 @@ const (
 	orderStateAwaitingFinalization
 )
 
+const ethAddress0 = "0x0000000000000000000000000000000000000000"
+
 type indexer struct {
 	log       *logan.Entry
 	swapica   *gobind.Swapica
 	collector *jsonapi.Connector
 
-	requestTimeout time.Duration
+	chainID        int64
 	lastBlock      uint64
-
-	blockURL, ordersURL, matchesURL *url.URL
+	requestTimeout time.Duration
 }
 
 func newIndexer(c config.Config, lastBlock uint64) indexer {
-	chain := c.Network().ChainID
-	block, err := url.Parse(chain + "/block")
-	if err != nil {
-		panic(errors.Wrap(err, "failed to parse URL"))
-	}
-	orders, _ := url.Parse(chain + "/orders")
-	matches, _ := url.Parse(chain + "/match_orders")
-
 	return indexer{
 		log:            c.Log(),
 		swapica:        c.Network().Swapica,
 		collector:      c.Collector(),
-		requestTimeout: c.Network().RequestTimeout,
+		chainID:        c.Network().ChainID,
 		lastBlock:      lastBlock,
-		blockURL:       block,
-		ordersURL:      orders,
-		matchesURL:     matches,
+		requestTimeout: c.Network().RequestTimeout,
 	}
 }
 
@@ -90,7 +81,8 @@ func (r *indexer) saveLastBlock(ctx context.Context) error {
 		},
 	}
 
-	err := r.collector.PostJSON(r.blockURL, body, ctx, nil)
+	u, _ := url.Parse(strconv.FormatInt(r.chainID, 10) + "/block")
+	err := r.collector.PostJSON(u, body, ctx, nil)
 	return errors.Wrap(err, "failed to set last block in collector")
 }
 

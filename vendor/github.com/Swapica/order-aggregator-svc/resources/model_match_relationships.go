@@ -5,5 +5,6 @@
 package resources
 
 type MatchRelationships struct {
+	OriginChain Relation `json:"originChain"`
 	OriginOrder Relation `json:"originOrder"`
 }

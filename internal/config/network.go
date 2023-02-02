@@ -2,7 +2,6 @@ package config
 
 import (
 	"math"
-	"strconv"
 	"time"
 
 	"github.com/Swapica/indexer-svc/internal/gobind"
@@ -15,7 +14,7 @@ import (
 
 type Network struct {
 	*gobind.Swapica
-	ChainID        string
+	ChainID        int64
 	IndexPeriod    time.Duration
 	RequestTimeout time.Duration
 }
@@ -42,7 +41,7 @@ func (c *config) Network() Network {
 		}
 
 		if cfg.ChainID > maxChainID || cfg.ChainID <= 0 {
-			panic("chain_id value out of range due to EIP 2294")
+			panic("chain_id value out of range according to EIP 2294")
 		}
 		cli, err := ethclient.Dial(cfg.RPC)
 		if err != nil {
@@ -59,7 +58,7 @@ func (c *config) Network() Network {
 
 		return Network{
 			Swapica:        s,
-			ChainID:        strconv.FormatInt(cfg.ChainID, 10),
+			ChainID:        cfg.ChainID,
 			IndexPeriod:    cfg.IndexPeriod,
 			RequestTimeout: cfg.RequestTimeout,
 		}

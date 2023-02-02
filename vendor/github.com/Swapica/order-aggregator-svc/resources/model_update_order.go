@@ -6,7 +6,8 @@ package resources
 
 type UpdateOrder struct {
 	Key
-	Attributes UpdateOrderAttributes `json:"attributes"`
+	Attributes    UpdateOrderAttributes     `json:"attributes"`
+	Relationships *UpdateOrderRelationships `json:"relationships,omitempty"`
 }
 type UpdateOrderRequest struct {
 	Data     UpdateOrder `json:"data"`

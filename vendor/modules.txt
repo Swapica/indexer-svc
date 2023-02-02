@@ -1,6 +1,9 @@
 # github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6
 ## explicit
 github.com/StackExchange/wmi
+# github.com/Swapica/order-aggregator-svc v0.0.0-20230202155328-a2b918f0c782
+## explicit; go 1.19
+github.com/Swapica/order-aggregator-svc/resources
 # github.com/alecthomas/kingpin v2.2.6+incompatible
 ## explicit
 github.com/alecthomas/kingpin

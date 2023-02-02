@@ -6,7 +6,8 @@ package resources
 
 type Order struct {
 	Key
-	Attributes OrderAttributes `json:"attributes"`
+	Attributes    OrderAttributes    `json:"attributes"`
+	Relationships OrderRelationships `json:"relationships"`
 }
 type OrderResponse struct {
 	Data     Order    `json:"data"`

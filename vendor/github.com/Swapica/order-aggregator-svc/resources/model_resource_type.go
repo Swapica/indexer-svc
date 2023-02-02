@@ -9,6 +9,7 @@ type ResourceType string
 // List of ResourceType
 const (
 	BLOCK       ResourceType = "block"
+	CHAIN       ResourceType = "chain"
 	MATCH_ORDER ResourceType = "match_order"
 	ORDER       ResourceType = "order"
 )

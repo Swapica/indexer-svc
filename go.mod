@@ -3,6 +3,7 @@ module github.com/Swapica/indexer-svc
 go 1.19
 
 require (
+	github.com/Swapica/order-aggregator-svc v0.0.0-20230202155328-a2b918f0c782
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/ethereum/go-ethereum v1.10.26
 	gitlab.com/distributed_lab/figure/v3 v3.1.2

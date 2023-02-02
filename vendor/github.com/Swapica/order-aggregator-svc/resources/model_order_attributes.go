@@ -4,21 +4,19 @@
 
 package resources
 
-import "math/big"
-
 type OrderAttributes struct {
 	// Order creator
 	Account string `json:"account"`
 	// With decimals
-	AmountToBuy *big.Int `json:"amountToBuy"`
+	AmountToBuy string `json:"amountToBuy"`
 	// With decimals
-	AmountToSell *big.Int `json:"amountToSell"`
-	// Chain ID of the destination network
-	DestChain *big.Int `json:"destChain"`
-	// Match order's ID that allowed to execute the order
-	ExecutedBy *big.Int `json:"executedBy,omitempty"`
+	AmountToSell string `json:"amountToSell"`
 	// Swapica contract address on the destination network
 	MatchSwapica *string `json:"matchSwapica,omitempty"`
+	// Order ID from the contract
+	OrderId *int64 `json:"order_id"`
+	// Source blockchain where the order appeared
+	SrcChain *int64 `json:"src_chain"`
 	// Order state
 	State uint8 `json:"state"`
 	// Contract address of the token to buy

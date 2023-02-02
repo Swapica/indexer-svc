@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/Swapica/indexer-svc/internal/config"
-	"github.com/Swapica/indexer-svc/resources"
+	"github.com/Swapica/order-aggregator-svc/resources"
 	"gitlab.com/distributed_lab/json-api-connector/cerrors"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
@@ -50,14 +50,11 @@ func Run(cfg config.Config) {
 }
 
 func (s *service) getLastBlock() (uint64, error) {
-	raw := s.cfg.Network().ChainID + "/block"
-	path, err := url.Parse(raw)
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to parse endpoint", map[string]interface{}{"url": raw})
-	}
+	// No error can occur when parsing int64 + const_string
+	path, _ := url.Parse(strconv.FormatInt(s.cfg.Network().ChainID, 10) + "/block")
 
 	var resp resources.BlockResponse
-	if err = s.cfg.Collector().Get(path, &resp); err != nil {
+	if err := s.cfg.Collector().Get(path, &resp); err != nil {
 		if err, ok := err.(cerrors.Error); ok && err.Status() == http.StatusNotFound {
 			return 0, nil
 		}

@@ -3,9 +3,11 @@ package service
 import (
 	"context"
 	"math/big"
+	"net/url"
+	"strconv"
 
 	"github.com/Swapica/indexer-svc/internal/gobind"
-	"github.com/Swapica/indexer-svc/resources"
+	"github.com/Swapica/order-aggregator-svc/resources"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
@@ -45,28 +47,36 @@ func (r *indexer) addOrder(ctx context.Context, id *big.Int, status gobind.Swapi
 		return errors.Wrap(err, "failed to get order from contract")
 	}
 
-	matchSwapica := status.MatchSwapica.String()
+	orderId := o.Id.Int64()
 	body := resources.OrderResponse{
 		Data: resources.Order{
 			Key: resources.Key{
-				ID:   o.Id.String(),
 				Type: resources.ORDER,
 			},
 			Attributes: resources.OrderAttributes{
 				Account:      o.Account.String(),
-				AmountToBuy:  o.AmountToBuy,
-				AmountToSell: o.AmountToSell,
-				DestChain:    o.DestChain,
-				ExecutedBy:   status.ExecutedBy,
-				MatchSwapica: &matchSwapica,
+				AmountToBuy:  o.AmountToBuy.String(),
+				AmountToSell: o.AmountToSell.String(),
+				OrderId:      &orderId,
+				SrcChain:     &r.chainID,
 				State:        status.State,
 				TokenToBuy:   o.TokenToBuy.String(),
 				TokenToSell:  o.TokenToSell.String(),
 			},
+			Relationships: resources.OrderRelationships{
+				DestChain: resources.Relation{
+					Data: &resources.Key{
+						ID:   o.DestChain.String(),
+						Type: resources.CHAIN,
+					},
+				},
+				ExecutedBy: nil,
+			},
 		},
 	}
 
-	err = r.collector.PostJSON(r.ordersURL, body, ctx, nil)
+	u, _ := url.Parse("/orders")
+	err = r.collector.PostJSON(u, body, ctx, nil)
 	if isConflict(err) {
 		r.log.WithField("order_id", o.Id.String()).
 			Warn("order already exists in collector DB, skipping it")
@@ -76,7 +86,23 @@ func (r *indexer) addOrder(ctx context.Context, id *big.Int, status gobind.Swapi
 }
 
 func (r *indexer) updateOrderStatus(ctx context.Context, id *big.Int, status gobind.SwapicaStatus) error {
-	matchSwapica := status.MatchSwapica.String()
+	var matchSwapica *string
+	if str := status.MatchSwapica.String(); str != ethAddress0 {
+		matchSwapica = &str
+	}
+
+	var rel *resources.UpdateOrderRelationships
+	// fixme: ensure it is not filled with 0 when it's empty
+	if ex := status.ExecutedBy; ex == nil {
+		rel = &resources.UpdateOrderRelationships{
+			ExecutedBy: &resources.Relation{
+				Data: &resources.Key{
+					ID:   ex.String(),
+					Type: resources.MATCH_ORDER,
+				},
+			}}
+	}
+
 	body := resources.UpdateOrderRequest{
 		Data: resources.UpdateOrder{
 			Key: resources.Key{
@@ -84,13 +110,14 @@ func (r *indexer) updateOrderStatus(ctx context.Context, id *big.Int, status gob
 				Type: resources.ORDER,
 			},
 			Attributes: resources.UpdateOrderAttributes{
-				ExecutedBy:   status.ExecutedBy,
-				MatchSwapica: &matchSwapica,
+				MatchSwapica: matchSwapica,
 				State:        status.State,
 			},
+			Relationships: rel,
 		},
 	}
 
-	err := r.collector.PatchJSON(r.ordersURL, body, ctx, nil)
+	u, _ := url.Parse(strconv.FormatInt(r.chainID, 10) + "/orders")
+	err := r.collector.PatchJSON(u, body, ctx, nil)
 	return errors.Wrap(err, "failed to update order in collector service")
 }

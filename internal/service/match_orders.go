@@ -3,9 +3,11 @@ package service
 import (
 	"context"
 	"math/big"
+	"net/url"
+	"strconv"
 
 	"github.com/Swapica/indexer-svc/internal/gobind"
-	"github.com/Swapica/indexer-svc/resources"
+	"github.com/Swapica/order-aggregator-svc/resources"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
@@ -53,22 +55,31 @@ func (r *indexer) addMatch(ctx context.Context, id *big.Int, status gobind.Swapi
 			},
 			Attributes: resources.MatchAttributes{
 				Account:      mo.Account.String(),
-				TokenToSell:  mo.TokenToSell.String(),
-				AmountToSell: mo.AmountToSell,
-				OriginChain:  mo.OriginChain,
+				AmountToSell: mo.AmountToSell.String(),
+				MatchId:      nil,
+				SrcChain:     nil,
 				State:        status.State,
+				TokenToSell:  mo.TokenToSell.String(),
 			},
 			Relationships: resources.MatchRelationships{
+				OriginChain: resources.Relation{
+					Data: &resources.Key{
+						ID:   mo.OriginChain.String(),
+						Type: resources.CHAIN,
+					},
+				},
 				OriginOrder: resources.Relation{
 					Data: &resources.Key{
 						ID:   mo.OriginOrderId.String(),
-						Type: resources.ORDER},
+						Type: resources.ORDER,
+					},
 				},
 			},
 		},
 	}
 
-	err = r.collector.PostJSON(r.matchesURL, body, ctx, nil)
+	u, _ := url.Parse("/match_orders")
+	err = r.collector.PostJSON(u, body, ctx, nil)
 	if isConflict(err) {
 		r.log.WithField("match_id", mo.Id.String()).
 			Warn("match order already exists in collector DB, skipping it")
@@ -82,7 +93,7 @@ func (r *indexer) updateMatchStatus(ctx context.Context, id *big.Int, status gob
 		Data: resources.UpdateMatch{
 			Key: resources.Key{
 				ID:   id.String(),
-				Type: resources.ORDER,
+				Type: resources.MATCH_ORDER,
 			},
 			Attributes: resources.UpdateMatchAttributes{
 				State: status.State,
@@ -90,6 +101,7 @@ func (r *indexer) updateMatchStatus(ctx context.Context, id *big.Int, status gob
 		},
 	}
 
-	err := r.collector.PatchJSON(r.matchesURL, body, ctx, nil)
+	u, _ := url.Parse(strconv.FormatInt(r.chainID, 10) + "/match_orders")
+	err := r.collector.PatchJSON(u, body, ctx, nil)
 	return errors.Wrap(err, "failed to update match order in collector service")
 }
