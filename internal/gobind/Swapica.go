@@ -29,37 +29,48 @@ var (
 	_ = abi.ConvertType
 )
 
-// SwapicaMatch is an auto generated low-level Go binding around an user-defined struct.
-type SwapicaMatch struct {
-	Id            *big.Int
+// ISwapicaCreateOrderRequest is an auto generated low-level Go binding around an user-defined struct.
+type ISwapicaCreateOrderRequest struct {
+	TokenToSell      common.Address
+	AmountToSell     *big.Int
+	TokenToBuy       common.Address
+	AmountToBuy      *big.Int
+	DestinationChain *big.Int
+}
+
+// ISwapicaMatch is an auto generated low-level Go binding around an user-defined struct.
+type ISwapicaMatch struct {
+	State         uint8
+	MatchId       *big.Int
 	OriginOrderId *big.Int
-	Account       common.Address
+	Creator       common.Address
 	TokenToSell   common.Address
 	AmountToSell  *big.Int
-	OriginChain   *big.Int
+	OriginChainId *big.Int
 }
 
-// SwapicaOrder is an auto generated low-level Go binding around an user-defined struct.
-type SwapicaOrder struct {
-	Id           *big.Int
-	Account      common.Address
-	TokenToSell  common.Address
-	TokenToBuy   common.Address
-	AmountToSell *big.Int
-	AmountToBuy  *big.Int
-	DestChain    *big.Int
+// ISwapicaOrder is an auto generated low-level Go binding around an user-defined struct.
+type ISwapicaOrder struct {
+	Status           ISwapicaOrderStatus
+	OrderId          *big.Int
+	Creator          common.Address
+	TokenToSell      common.Address
+	AmountToSell     *big.Int
+	TokenToBuy       common.Address
+	AmountToBuy      *big.Int
+	DestinationChain *big.Int
 }
 
-// SwapicaStatus is an auto generated low-level Go binding around an user-defined struct.
-type SwapicaStatus struct {
+// ISwapicaOrderStatus is an auto generated low-level Go binding around an user-defined struct.
+type ISwapicaOrderStatus struct {
 	State        uint8
-	ExecutedBy   *big.Int
+	MatchId      *big.Int
 	MatchSwapica common.Address
 }
 
 // SwapicaMetaData contains all meta data concerning the Swapica contract.
 var SwapicaMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"previousAdmin\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newAdmin\",\"type\":\"address\"}],\"name\":\"AdminChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"beacon\",\"type\":\"address\"}],\"name\":\"BeaconUpgraded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"enumSwapica.State\",\"name\":\"state\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"executedBy\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"matchSwapica\",\"type\":\"address\"}],\"indexed\":true,\"internalType\":\"structSwapica.Status\",\"name\":\"status\",\"type\":\"tuple\"}],\"name\":\"MatchUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"enumSwapica.State\",\"name\":\"state\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"executedBy\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"matchSwapica\",\"type\":\"address\"}],\"indexed\":true,\"internalType\":\"structSwapica.Status\",\"name\":\"status\",\"type\":\"tuple\"}],\"name\":\"OrderUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"implementation\",\"type\":\"address\"}],\"name\":\"Upgraded\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"NATIVE\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"signers_\",\"type\":\"address[]\"},{\"internalType\":\"uint256\",\"name\":\"signaturesThreshold_\",\"type\":\"uint256\"}],\"name\":\"__Signers_init\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"signers\",\"type\":\"address[]\"}],\"name\":\"__Swapica_init\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"signers_\",\"type\":\"address[]\"}],\"name\":\"addSigners\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"orderData\",\"type\":\"bytes\"},{\"internalType\":\"bytes[]\",\"name\":\"signatures\",\"type\":\"bytes[]\"}],\"name\":\"cancelMatch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"}],\"name\":\"cancelOrder\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"orderData\",\"type\":\"bytes\"},{\"internalType\":\"bytes[]\",\"name\":\"signatures\",\"type\":\"bytes[]\"}],\"name\":\"createMatch\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenToSell\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToSell\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"tokenToBuy\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToBuy\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"destChain\",\"type\":\"uint256\"}],\"name\":\"createOrder\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"orderData\",\"type\":\"bytes\"},{\"internalType\":\"bytes[]\",\"name\":\"signatures\",\"type\":\"bytes[]\"}],\"name\":\"executeMatch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"orderData\",\"type\":\"bytes\"},{\"internalType\":\"bytes[]\",\"name\":\"signatures\",\"type\":\"bytes[]\"}],\"name\":\"executeOrder\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tokenToSell\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenToBuy\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"begin\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"end\",\"type\":\"uint256\"}],\"name\":\"getActiveOrders\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenToSell\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenToBuy\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToSell\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amountToBuy\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"destChain\",\"type\":\"uint256\"}],\"internalType\":\"structSwapica.Order[]\",\"name\":\"result\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getOrdersLength\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getSigners\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"enumSwapica.State\",\"name\":\"state\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"begin\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"end\",\"type\":\"uint256\"}],\"name\":\"getUserMatches\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"originOrderId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenToSell\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToSell\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"originChain\",\"type\":\"uint256\"}],\"internalType\":\"structSwapica.Match[]\",\"name\":\"result\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"getUserMatchesLength\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"enumSwapica.State\",\"name\":\"state\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"begin\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"end\",\"type\":\"uint256\"}],\"name\":\"getUserOrders\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenToSell\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenToBuy\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToSell\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amountToBuy\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"destChain\",\"type\":\"uint256\"}],\"internalType\":\"structSwapica.Order[]\",\"name\":\"result\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"getUserOrdersLength\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"locked\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"matchStatus\",\"outputs\":[{\"internalType\":\"enumSwapica.State\",\"name\":\"state\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"executedBy\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"matchSwapica\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"matches\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"originOrderId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenToSell\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToSell\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"originChain\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"orderStatus\",\"outputs\":[{\"internalType\":\"enumSwapica.State\",\"name\":\"state\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"executedBy\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"matchSwapica\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"orders\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenToSell\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenToBuy\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToSell\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amountToBuy\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"destChain\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"proxiableUUID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"signers_\",\"type\":\"address[]\"}],\"name\":\"removeSigners\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"signaturesThreshold_\",\"type\":\"uint256\"}],\"name\":\"setSignaturesThreshold\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"signaturesThreshold\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newImplementation\",\"type\":\"address\"}],\"name\":\"upgradeTo\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newImplementation\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"upgradeToAndCall\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"previousAdmin\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newAdmin\",\"type\":\"address\"}],\"name\":\"AdminChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"beacon\",\"type\":\"address\"}],\"name\":\"BeaconUpgraded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"components\":[{\"internalType\":\"enumISwapica.State\",\"name\":\"state\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"matchId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"originOrderId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"creator\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenToSell\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToSell\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"originChainId\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"structISwapica.Match\",\"name\":\"match_\",\"type\":\"tuple\"}],\"name\":\"MatchCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"matchId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"enumISwapica.State\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"MatchUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"components\":[{\"components\":[{\"internalType\":\"enumISwapica.State\",\"name\":\"state\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"matchId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"matchSwapica\",\"type\":\"address\"}],\"internalType\":\"structISwapica.OrderStatus\",\"name\":\"status\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"orderId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"creator\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenToSell\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToSell\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"tokenToBuy\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToBuy\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"destinationChain\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"structISwapica.Order\",\"name\":\"order\",\"type\":\"tuple\"}],\"name\":\"OrderCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"orderId\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"enumISwapica.State\",\"name\":\"state\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"matchId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"matchSwapica\",\"type\":\"address\"}],\"indexed\":false,\"internalType\":\"structISwapica.OrderStatus\",\"name\":\"status\",\"type\":\"tuple\"}],\"name\":\"OrderUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"implementation\",\"type\":\"address\"}],\"name\":\"Upgraded\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"signers_\",\"type\":\"address[]\"},{\"internalType\":\"uint256\",\"name\":\"signaturesThreshold_\",\"type\":\"uint256\"}],\"name\":\"__Signers_init\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"signers\",\"type\":\"address[]\"}],\"name\":\"__Swapica_init\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"signers\",\"type\":\"address[]\"}],\"name\":\"addSigners\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"},{\"internalType\":\"bytes[]\",\"name\":\"signatures\",\"type\":\"bytes[]\"}],\"name\":\"cancelMatch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"orderId\",\"type\":\"uint256\"}],\"name\":\"cancelOrder\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"},{\"internalType\":\"bytes[]\",\"name\":\"signatures\",\"type\":\"bytes[]\"}],\"name\":\"createMatch\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"tokenToSell\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToSell\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"tokenToBuy\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToBuy\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"destinationChain\",\"type\":\"uint256\"}],\"internalType\":\"structISwapica.CreateOrderRequest\",\"name\":\"request\",\"type\":\"tuple\"}],\"name\":\"createOrder\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"},{\"internalType\":\"bytes[]\",\"name\":\"signatures\",\"type\":\"bytes[]\"}],\"name\":\"executeMatch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"},{\"internalType\":\"bytes[]\",\"name\":\"signatures\",\"type\":\"bytes[]\"}],\"name\":\"executeOrder\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"offset\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"limit\",\"type\":\"uint256\"}],\"name\":\"getAllOrders\",\"outputs\":[{\"components\":[{\"components\":[{\"internalType\":\"enumISwapica.State\",\"name\":\"state\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"matchId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"matchSwapica\",\"type\":\"address\"}],\"internalType\":\"structISwapica.OrderStatus\",\"name\":\"status\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"orderId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"creator\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenToSell\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToSell\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"tokenToBuy\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToBuy\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"destinationChain\",\"type\":\"uint256\"}],\"internalType\":\"structISwapica.Order[]\",\"name\":\"allOrders\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getAllOrdersLength\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getSigners\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"offset\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"limit\",\"type\":\"uint256\"}],\"name\":\"getUserMatches\",\"outputs\":[{\"components\":[{\"internalType\":\"enumISwapica.State\",\"name\":\"state\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"matchId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"originOrderId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"creator\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenToSell\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToSell\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"originChainId\",\"type\":\"uint256\"}],\"internalType\":\"structISwapica.Match[]\",\"name\":\"userMatches\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"getUserMatchesLength\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"offset\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"limit\",\"type\":\"uint256\"}],\"name\":\"getUserOrders\",\"outputs\":[{\"components\":[{\"components\":[{\"internalType\":\"enumISwapica.State\",\"name\":\"state\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"matchId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"matchSwapica\",\"type\":\"address\"}],\"internalType\":\"structISwapica.OrderStatus\",\"name\":\"status\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"orderId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"creator\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"tokenToSell\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToSell\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"tokenToBuy\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountToBuy\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"destinationChain\",\"type\":\"uint256\"}],\"internalType\":\"structISwapica.Order[]\",\"name\":\"userOrders\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"}],\"name\":\"getUserOrdersLength\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"proxiableUUID\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"signers\",\"type\":\"address[]\"}],\"name\":\"removeSigners\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_signaturesThreshold\",\"type\":\"uint256\"}],\"name\":\"setSignaturesThreshold\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"signaturesThreshold\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newImplementation\",\"type\":\"address\"}],\"name\":\"upgradeTo\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newImplementation\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"upgradeToAndCall\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
 }
 
 // SwapicaABI is the input ABI used to generate the binding from.
@@ -208,74 +219,43 @@ func (_Swapica *SwapicaTransactorRaw) Transact(opts *bind.TransactOpts, method s
 	return _Swapica.Contract.contract.Transact(opts, method, params...)
 }
 
-// NATIVE is a free data retrieval call binding the contract method 0xa0cf0aea.
+// GetAllOrders is a free data retrieval call binding the contract method 0x418f2845.
 //
-// Solidity: function NATIVE() view returns(address)
-func (_Swapica *SwapicaCaller) NATIVE(opts *bind.CallOpts) (common.Address, error) {
+// Solidity: function getAllOrders(uint256 offset, uint256 limit) view returns(((uint8,uint256,address),uint256,address,address,uint256,address,uint256,uint256)[] allOrders)
+func (_Swapica *SwapicaCaller) GetAllOrders(opts *bind.CallOpts, offset *big.Int, limit *big.Int) ([]ISwapicaOrder, error) {
 	var out []interface{}
-	err := _Swapica.contract.Call(opts, &out, "NATIVE")
+	err := _Swapica.contract.Call(opts, &out, "getAllOrders", offset, limit)
 
 	if err != nil {
-		return *new(common.Address), err
+		return *new([]ISwapicaOrder), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+	out0 := *abi.ConvertType(out[0], new([]ISwapicaOrder)).(*[]ISwapicaOrder)
 
 	return out0, err
 
 }
 
-// NATIVE is a free data retrieval call binding the contract method 0xa0cf0aea.
+// GetAllOrders is a free data retrieval call binding the contract method 0x418f2845.
 //
-// Solidity: function NATIVE() view returns(address)
-func (_Swapica *SwapicaSession) NATIVE() (common.Address, error) {
-	return _Swapica.Contract.NATIVE(&_Swapica.CallOpts)
+// Solidity: function getAllOrders(uint256 offset, uint256 limit) view returns(((uint8,uint256,address),uint256,address,address,uint256,address,uint256,uint256)[] allOrders)
+func (_Swapica *SwapicaSession) GetAllOrders(offset *big.Int, limit *big.Int) ([]ISwapicaOrder, error) {
+	return _Swapica.Contract.GetAllOrders(&_Swapica.CallOpts, offset, limit)
 }
 
-// NATIVE is a free data retrieval call binding the contract method 0xa0cf0aea.
+// GetAllOrders is a free data retrieval call binding the contract method 0x418f2845.
 //
-// Solidity: function NATIVE() view returns(address)
-func (_Swapica *SwapicaCallerSession) NATIVE() (common.Address, error) {
-	return _Swapica.Contract.NATIVE(&_Swapica.CallOpts)
+// Solidity: function getAllOrders(uint256 offset, uint256 limit) view returns(((uint8,uint256,address),uint256,address,address,uint256,address,uint256,uint256)[] allOrders)
+func (_Swapica *SwapicaCallerSession) GetAllOrders(offset *big.Int, limit *big.Int) ([]ISwapicaOrder, error) {
+	return _Swapica.Contract.GetAllOrders(&_Swapica.CallOpts, offset, limit)
 }
 
-// GetActiveOrders is a free data retrieval call binding the contract method 0xab9f52a1.
+// GetAllOrdersLength is a free data retrieval call binding the contract method 0xb06d498e.
 //
-// Solidity: function getActiveOrders(address tokenToSell, address tokenToBuy, uint256 begin, uint256 end) view returns((uint256,address,address,address,uint256,uint256,uint256)[] result)
-func (_Swapica *SwapicaCaller) GetActiveOrders(opts *bind.CallOpts, tokenToSell common.Address, tokenToBuy common.Address, begin *big.Int, end *big.Int) ([]SwapicaOrder, error) {
+// Solidity: function getAllOrdersLength() view returns(uint256)
+func (_Swapica *SwapicaCaller) GetAllOrdersLength(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _Swapica.contract.Call(opts, &out, "getActiveOrders", tokenToSell, tokenToBuy, begin, end)
-
-	if err != nil {
-		return *new([]SwapicaOrder), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new([]SwapicaOrder)).(*[]SwapicaOrder)
-
-	return out0, err
-
-}
-
-// GetActiveOrders is a free data retrieval call binding the contract method 0xab9f52a1.
-//
-// Solidity: function getActiveOrders(address tokenToSell, address tokenToBuy, uint256 begin, uint256 end) view returns((uint256,address,address,address,uint256,uint256,uint256)[] result)
-func (_Swapica *SwapicaSession) GetActiveOrders(tokenToSell common.Address, tokenToBuy common.Address, begin *big.Int, end *big.Int) ([]SwapicaOrder, error) {
-	return _Swapica.Contract.GetActiveOrders(&_Swapica.CallOpts, tokenToSell, tokenToBuy, begin, end)
-}
-
-// GetActiveOrders is a free data retrieval call binding the contract method 0xab9f52a1.
-//
-// Solidity: function getActiveOrders(address tokenToSell, address tokenToBuy, uint256 begin, uint256 end) view returns((uint256,address,address,address,uint256,uint256,uint256)[] result)
-func (_Swapica *SwapicaCallerSession) GetActiveOrders(tokenToSell common.Address, tokenToBuy common.Address, begin *big.Int, end *big.Int) ([]SwapicaOrder, error) {
-	return _Swapica.Contract.GetActiveOrders(&_Swapica.CallOpts, tokenToSell, tokenToBuy, begin, end)
-}
-
-// GetOrdersLength is a free data retrieval call binding the contract method 0x07c2e16c.
-//
-// Solidity: function getOrdersLength() view returns(uint256)
-func (_Swapica *SwapicaCaller) GetOrdersLength(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _Swapica.contract.Call(opts, &out, "getOrdersLength")
+	err := _Swapica.contract.Call(opts, &out, "getAllOrdersLength")
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -287,18 +267,18 @@ func (_Swapica *SwapicaCaller) GetOrdersLength(opts *bind.CallOpts) (*big.Int, e
 
 }
 
-// GetOrdersLength is a free data retrieval call binding the contract method 0x07c2e16c.
+// GetAllOrdersLength is a free data retrieval call binding the contract method 0xb06d498e.
 //
-// Solidity: function getOrdersLength() view returns(uint256)
-func (_Swapica *SwapicaSession) GetOrdersLength() (*big.Int, error) {
-	return _Swapica.Contract.GetOrdersLength(&_Swapica.CallOpts)
+// Solidity: function getAllOrdersLength() view returns(uint256)
+func (_Swapica *SwapicaSession) GetAllOrdersLength() (*big.Int, error) {
+	return _Swapica.Contract.GetAllOrdersLength(&_Swapica.CallOpts)
 }
 
-// GetOrdersLength is a free data retrieval call binding the contract method 0x07c2e16c.
+// GetAllOrdersLength is a free data retrieval call binding the contract method 0xb06d498e.
 //
-// Solidity: function getOrdersLength() view returns(uint256)
-func (_Swapica *SwapicaCallerSession) GetOrdersLength() (*big.Int, error) {
-	return _Swapica.Contract.GetOrdersLength(&_Swapica.CallOpts)
+// Solidity: function getAllOrdersLength() view returns(uint256)
+func (_Swapica *SwapicaCallerSession) GetAllOrdersLength() (*big.Int, error) {
+	return _Swapica.Contract.GetAllOrdersLength(&_Swapica.CallOpts)
 }
 
 // GetSigners is a free data retrieval call binding the contract method 0x94cf795e.
@@ -332,35 +312,35 @@ func (_Swapica *SwapicaCallerSession) GetSigners() ([]common.Address, error) {
 	return _Swapica.Contract.GetSigners(&_Swapica.CallOpts)
 }
 
-// GetUserMatches is a free data retrieval call binding the contract method 0xa435940f.
+// GetUserMatches is a free data retrieval call binding the contract method 0xecf1d9f9.
 //
-// Solidity: function getUserMatches(address user, uint8 state, uint256 begin, uint256 end) view returns((uint256,uint256,address,address,uint256,uint256)[] result)
-func (_Swapica *SwapicaCaller) GetUserMatches(opts *bind.CallOpts, user common.Address, state uint8, begin *big.Int, end *big.Int) ([]SwapicaMatch, error) {
+// Solidity: function getUserMatches(address user, uint256 offset, uint256 limit) view returns((uint8,uint256,uint256,address,address,uint256,uint256)[] userMatches)
+func (_Swapica *SwapicaCaller) GetUserMatches(opts *bind.CallOpts, user common.Address, offset *big.Int, limit *big.Int) ([]ISwapicaMatch, error) {
 	var out []interface{}
-	err := _Swapica.contract.Call(opts, &out, "getUserMatches", user, state, begin, end)
+	err := _Swapica.contract.Call(opts, &out, "getUserMatches", user, offset, limit)
 
 	if err != nil {
-		return *new([]SwapicaMatch), err
+		return *new([]ISwapicaMatch), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new([]SwapicaMatch)).(*[]SwapicaMatch)
+	out0 := *abi.ConvertType(out[0], new([]ISwapicaMatch)).(*[]ISwapicaMatch)
 
 	return out0, err
 
 }
 
-// GetUserMatches is a free data retrieval call binding the contract method 0xa435940f.
+// GetUserMatches is a free data retrieval call binding the contract method 0xecf1d9f9.
 //
-// Solidity: function getUserMatches(address user, uint8 state, uint256 begin, uint256 end) view returns((uint256,uint256,address,address,uint256,uint256)[] result)
-func (_Swapica *SwapicaSession) GetUserMatches(user common.Address, state uint8, begin *big.Int, end *big.Int) ([]SwapicaMatch, error) {
-	return _Swapica.Contract.GetUserMatches(&_Swapica.CallOpts, user, state, begin, end)
+// Solidity: function getUserMatches(address user, uint256 offset, uint256 limit) view returns((uint8,uint256,uint256,address,address,uint256,uint256)[] userMatches)
+func (_Swapica *SwapicaSession) GetUserMatches(user common.Address, offset *big.Int, limit *big.Int) ([]ISwapicaMatch, error) {
+	return _Swapica.Contract.GetUserMatches(&_Swapica.CallOpts, user, offset, limit)
 }
 
-// GetUserMatches is a free data retrieval call binding the contract method 0xa435940f.
+// GetUserMatches is a free data retrieval call binding the contract method 0xecf1d9f9.
 //
-// Solidity: function getUserMatches(address user, uint8 state, uint256 begin, uint256 end) view returns((uint256,uint256,address,address,uint256,uint256)[] result)
-func (_Swapica *SwapicaCallerSession) GetUserMatches(user common.Address, state uint8, begin *big.Int, end *big.Int) ([]SwapicaMatch, error) {
-	return _Swapica.Contract.GetUserMatches(&_Swapica.CallOpts, user, state, begin, end)
+// Solidity: function getUserMatches(address user, uint256 offset, uint256 limit) view returns((uint8,uint256,uint256,address,address,uint256,uint256)[] userMatches)
+func (_Swapica *SwapicaCallerSession) GetUserMatches(user common.Address, offset *big.Int, limit *big.Int) ([]ISwapicaMatch, error) {
+	return _Swapica.Contract.GetUserMatches(&_Swapica.CallOpts, user, offset, limit)
 }
 
 // GetUserMatchesLength is a free data retrieval call binding the contract method 0x026f562d.
@@ -394,35 +374,35 @@ func (_Swapica *SwapicaCallerSession) GetUserMatchesLength(user common.Address) 
 	return _Swapica.Contract.GetUserMatchesLength(&_Swapica.CallOpts, user)
 }
 
-// GetUserOrders is a free data retrieval call binding the contract method 0xc7efc593.
+// GetUserOrders is a free data retrieval call binding the contract method 0xc7efbe36.
 //
-// Solidity: function getUserOrders(address user, uint8 state, uint256 begin, uint256 end) view returns((uint256,address,address,address,uint256,uint256,uint256)[] result)
-func (_Swapica *SwapicaCaller) GetUserOrders(opts *bind.CallOpts, user common.Address, state uint8, begin *big.Int, end *big.Int) ([]SwapicaOrder, error) {
+// Solidity: function getUserOrders(address user, uint256 offset, uint256 limit) view returns(((uint8,uint256,address),uint256,address,address,uint256,address,uint256,uint256)[] userOrders)
+func (_Swapica *SwapicaCaller) GetUserOrders(opts *bind.CallOpts, user common.Address, offset *big.Int, limit *big.Int) ([]ISwapicaOrder, error) {
 	var out []interface{}
-	err := _Swapica.contract.Call(opts, &out, "getUserOrders", user, state, begin, end)
+	err := _Swapica.contract.Call(opts, &out, "getUserOrders", user, offset, limit)
 
 	if err != nil {
-		return *new([]SwapicaOrder), err
+		return *new([]ISwapicaOrder), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new([]SwapicaOrder)).(*[]SwapicaOrder)
+	out0 := *abi.ConvertType(out[0], new([]ISwapicaOrder)).(*[]ISwapicaOrder)
 
 	return out0, err
 
 }
 
-// GetUserOrders is a free data retrieval call binding the contract method 0xc7efc593.
+// GetUserOrders is a free data retrieval call binding the contract method 0xc7efbe36.
 //
-// Solidity: function getUserOrders(address user, uint8 state, uint256 begin, uint256 end) view returns((uint256,address,address,address,uint256,uint256,uint256)[] result)
-func (_Swapica *SwapicaSession) GetUserOrders(user common.Address, state uint8, begin *big.Int, end *big.Int) ([]SwapicaOrder, error) {
-	return _Swapica.Contract.GetUserOrders(&_Swapica.CallOpts, user, state, begin, end)
+// Solidity: function getUserOrders(address user, uint256 offset, uint256 limit) view returns(((uint8,uint256,address),uint256,address,address,uint256,address,uint256,uint256)[] userOrders)
+func (_Swapica *SwapicaSession) GetUserOrders(user common.Address, offset *big.Int, limit *big.Int) ([]ISwapicaOrder, error) {
+	return _Swapica.Contract.GetUserOrders(&_Swapica.CallOpts, user, offset, limit)
 }
 
-// GetUserOrders is a free data retrieval call binding the contract method 0xc7efc593.
+// GetUserOrders is a free data retrieval call binding the contract method 0xc7efbe36.
 //
-// Solidity: function getUserOrders(address user, uint8 state, uint256 begin, uint256 end) view returns((uint256,address,address,address,uint256,uint256,uint256)[] result)
-func (_Swapica *SwapicaCallerSession) GetUserOrders(user common.Address, state uint8, begin *big.Int, end *big.Int) ([]SwapicaOrder, error) {
-	return _Swapica.Contract.GetUserOrders(&_Swapica.CallOpts, user, state, begin, end)
+// Solidity: function getUserOrders(address user, uint256 offset, uint256 limit) view returns(((uint8,uint256,address),uint256,address,address,uint256,address,uint256,uint256)[] userOrders)
+func (_Swapica *SwapicaCallerSession) GetUserOrders(user common.Address, offset *big.Int, limit *big.Int) ([]ISwapicaOrder, error) {
+	return _Swapica.Contract.GetUserOrders(&_Swapica.CallOpts, user, offset, limit)
 }
 
 // GetUserOrdersLength is a free data retrieval call binding the contract method 0x7a7007a8.
@@ -454,272 +434,6 @@ func (_Swapica *SwapicaSession) GetUserOrdersLength(user common.Address) (*big.I
 // Solidity: function getUserOrdersLength(address user) view returns(uint256)
 func (_Swapica *SwapicaCallerSession) GetUserOrdersLength(user common.Address) (*big.Int, error) {
 	return _Swapica.Contract.GetUserOrdersLength(&_Swapica.CallOpts, user)
-}
-
-// Locked is a free data retrieval call binding the contract method 0xdb20266f.
-//
-// Solidity: function locked(address , address ) view returns(uint256)
-func (_Swapica *SwapicaCaller) Locked(opts *bind.CallOpts, arg0 common.Address, arg1 common.Address) (*big.Int, error) {
-	var out []interface{}
-	err := _Swapica.contract.Call(opts, &out, "locked", arg0, arg1)
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// Locked is a free data retrieval call binding the contract method 0xdb20266f.
-//
-// Solidity: function locked(address , address ) view returns(uint256)
-func (_Swapica *SwapicaSession) Locked(arg0 common.Address, arg1 common.Address) (*big.Int, error) {
-	return _Swapica.Contract.Locked(&_Swapica.CallOpts, arg0, arg1)
-}
-
-// Locked is a free data retrieval call binding the contract method 0xdb20266f.
-//
-// Solidity: function locked(address , address ) view returns(uint256)
-func (_Swapica *SwapicaCallerSession) Locked(arg0 common.Address, arg1 common.Address) (*big.Int, error) {
-	return _Swapica.Contract.Locked(&_Swapica.CallOpts, arg0, arg1)
-}
-
-// MatchStatus is a free data retrieval call binding the contract method 0x23d38621.
-//
-// Solidity: function matchStatus(uint256 ) view returns(uint8 state, uint256 executedBy, address matchSwapica)
-func (_Swapica *SwapicaCaller) MatchStatus(opts *bind.CallOpts, arg0 *big.Int) (struct {
-	State        uint8
-	ExecutedBy   *big.Int
-	MatchSwapica common.Address
-}, error) {
-	var out []interface{}
-	err := _Swapica.contract.Call(opts, &out, "matchStatus", arg0)
-
-	outstruct := new(struct {
-		State        uint8
-		ExecutedBy   *big.Int
-		MatchSwapica common.Address
-	})
-	if err != nil {
-		return *outstruct, err
-	}
-
-	outstruct.State = *abi.ConvertType(out[0], new(uint8)).(*uint8)
-	outstruct.ExecutedBy = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
-	outstruct.MatchSwapica = *abi.ConvertType(out[2], new(common.Address)).(*common.Address)
-
-	return *outstruct, err
-
-}
-
-// MatchStatus is a free data retrieval call binding the contract method 0x23d38621.
-//
-// Solidity: function matchStatus(uint256 ) view returns(uint8 state, uint256 executedBy, address matchSwapica)
-func (_Swapica *SwapicaSession) MatchStatus(arg0 *big.Int) (struct {
-	State        uint8
-	ExecutedBy   *big.Int
-	MatchSwapica common.Address
-}, error) {
-	return _Swapica.Contract.MatchStatus(&_Swapica.CallOpts, arg0)
-}
-
-// MatchStatus is a free data retrieval call binding the contract method 0x23d38621.
-//
-// Solidity: function matchStatus(uint256 ) view returns(uint8 state, uint256 executedBy, address matchSwapica)
-func (_Swapica *SwapicaCallerSession) MatchStatus(arg0 *big.Int) (struct {
-	State        uint8
-	ExecutedBy   *big.Int
-	MatchSwapica common.Address
-}, error) {
-	return _Swapica.Contract.MatchStatus(&_Swapica.CallOpts, arg0)
-}
-
-// Matches is a free data retrieval call binding the contract method 0x4768d4ef.
-//
-// Solidity: function matches(uint256 ) view returns(uint256 id, uint256 originOrderId, address account, address tokenToSell, uint256 amountToSell, uint256 originChain)
-func (_Swapica *SwapicaCaller) Matches(opts *bind.CallOpts, arg0 *big.Int) (struct {
-	Id            *big.Int
-	OriginOrderId *big.Int
-	Account       common.Address
-	TokenToSell   common.Address
-	AmountToSell  *big.Int
-	OriginChain   *big.Int
-}, error) {
-	var out []interface{}
-	err := _Swapica.contract.Call(opts, &out, "matches", arg0)
-
-	outstruct := new(struct {
-		Id            *big.Int
-		OriginOrderId *big.Int
-		Account       common.Address
-		TokenToSell   common.Address
-		AmountToSell  *big.Int
-		OriginChain   *big.Int
-	})
-	if err != nil {
-		return *outstruct, err
-	}
-
-	outstruct.Id = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-	outstruct.OriginOrderId = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
-	outstruct.Account = *abi.ConvertType(out[2], new(common.Address)).(*common.Address)
-	outstruct.TokenToSell = *abi.ConvertType(out[3], new(common.Address)).(*common.Address)
-	outstruct.AmountToSell = *abi.ConvertType(out[4], new(*big.Int)).(**big.Int)
-	outstruct.OriginChain = *abi.ConvertType(out[5], new(*big.Int)).(**big.Int)
-
-	return *outstruct, err
-
-}
-
-// Matches is a free data retrieval call binding the contract method 0x4768d4ef.
-//
-// Solidity: function matches(uint256 ) view returns(uint256 id, uint256 originOrderId, address account, address tokenToSell, uint256 amountToSell, uint256 originChain)
-func (_Swapica *SwapicaSession) Matches(arg0 *big.Int) (struct {
-	Id            *big.Int
-	OriginOrderId *big.Int
-	Account       common.Address
-	TokenToSell   common.Address
-	AmountToSell  *big.Int
-	OriginChain   *big.Int
-}, error) {
-	return _Swapica.Contract.Matches(&_Swapica.CallOpts, arg0)
-}
-
-// Matches is a free data retrieval call binding the contract method 0x4768d4ef.
-//
-// Solidity: function matches(uint256 ) view returns(uint256 id, uint256 originOrderId, address account, address tokenToSell, uint256 amountToSell, uint256 originChain)
-func (_Swapica *SwapicaCallerSession) Matches(arg0 *big.Int) (struct {
-	Id            *big.Int
-	OriginOrderId *big.Int
-	Account       common.Address
-	TokenToSell   common.Address
-	AmountToSell  *big.Int
-	OriginChain   *big.Int
-}, error) {
-	return _Swapica.Contract.Matches(&_Swapica.CallOpts, arg0)
-}
-
-// OrderStatus is a free data retrieval call binding the contract method 0xbff49450.
-//
-// Solidity: function orderStatus(uint256 ) view returns(uint8 state, uint256 executedBy, address matchSwapica)
-func (_Swapica *SwapicaCaller) OrderStatus(opts *bind.CallOpts, arg0 *big.Int) (struct {
-	State        uint8
-	ExecutedBy   *big.Int
-	MatchSwapica common.Address
-}, error) {
-	var out []interface{}
-	err := _Swapica.contract.Call(opts, &out, "orderStatus", arg0)
-
-	outstruct := new(struct {
-		State        uint8
-		ExecutedBy   *big.Int
-		MatchSwapica common.Address
-	})
-	if err != nil {
-		return *outstruct, err
-	}
-
-	outstruct.State = *abi.ConvertType(out[0], new(uint8)).(*uint8)
-	outstruct.ExecutedBy = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
-	outstruct.MatchSwapica = *abi.ConvertType(out[2], new(common.Address)).(*common.Address)
-
-	return *outstruct, err
-
-}
-
-// OrderStatus is a free data retrieval call binding the contract method 0xbff49450.
-//
-// Solidity: function orderStatus(uint256 ) view returns(uint8 state, uint256 executedBy, address matchSwapica)
-func (_Swapica *SwapicaSession) OrderStatus(arg0 *big.Int) (struct {
-	State        uint8
-	ExecutedBy   *big.Int
-	MatchSwapica common.Address
-}, error) {
-	return _Swapica.Contract.OrderStatus(&_Swapica.CallOpts, arg0)
-}
-
-// OrderStatus is a free data retrieval call binding the contract method 0xbff49450.
-//
-// Solidity: function orderStatus(uint256 ) view returns(uint8 state, uint256 executedBy, address matchSwapica)
-func (_Swapica *SwapicaCallerSession) OrderStatus(arg0 *big.Int) (struct {
-	State        uint8
-	ExecutedBy   *big.Int
-	MatchSwapica common.Address
-}, error) {
-	return _Swapica.Contract.OrderStatus(&_Swapica.CallOpts, arg0)
-}
-
-// Orders is a free data retrieval call binding the contract method 0xa85c38ef.
-//
-// Solidity: function orders(uint256 ) view returns(uint256 id, address account, address tokenToSell, address tokenToBuy, uint256 amountToSell, uint256 amountToBuy, uint256 destChain)
-func (_Swapica *SwapicaCaller) Orders(opts *bind.CallOpts, arg0 *big.Int) (struct {
-	Id           *big.Int
-	Account      common.Address
-	TokenToSell  common.Address
-	TokenToBuy   common.Address
-	AmountToSell *big.Int
-	AmountToBuy  *big.Int
-	DestChain    *big.Int
-}, error) {
-	var out []interface{}
-	err := _Swapica.contract.Call(opts, &out, "orders", arg0)
-
-	outstruct := new(struct {
-		Id           *big.Int
-		Account      common.Address
-		TokenToSell  common.Address
-		TokenToBuy   common.Address
-		AmountToSell *big.Int
-		AmountToBuy  *big.Int
-		DestChain    *big.Int
-	})
-	if err != nil {
-		return *outstruct, err
-	}
-
-	outstruct.Id = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-	outstruct.Account = *abi.ConvertType(out[1], new(common.Address)).(*common.Address)
-	outstruct.TokenToSell = *abi.ConvertType(out[2], new(common.Address)).(*common.Address)
-	outstruct.TokenToBuy = *abi.ConvertType(out[3], new(common.Address)).(*common.Address)
-	outstruct.AmountToSell = *abi.ConvertType(out[4], new(*big.Int)).(**big.Int)
-	outstruct.AmountToBuy = *abi.ConvertType(out[5], new(*big.Int)).(**big.Int)
-	outstruct.DestChain = *abi.ConvertType(out[6], new(*big.Int)).(**big.Int)
-
-	return *outstruct, err
-
-}
-
-// Orders is a free data retrieval call binding the contract method 0xa85c38ef.
-//
-// Solidity: function orders(uint256 ) view returns(uint256 id, address account, address tokenToSell, address tokenToBuy, uint256 amountToSell, uint256 amountToBuy, uint256 destChain)
-func (_Swapica *SwapicaSession) Orders(arg0 *big.Int) (struct {
-	Id           *big.Int
-	Account      common.Address
-	TokenToSell  common.Address
-	TokenToBuy   common.Address
-	AmountToSell *big.Int
-	AmountToBuy  *big.Int
-	DestChain    *big.Int
-}, error) {
-	return _Swapica.Contract.Orders(&_Swapica.CallOpts, arg0)
-}
-
-// Orders is a free data retrieval call binding the contract method 0xa85c38ef.
-//
-// Solidity: function orders(uint256 ) view returns(uint256 id, address account, address tokenToSell, address tokenToBuy, uint256 amountToSell, uint256 amountToBuy, uint256 destChain)
-func (_Swapica *SwapicaCallerSession) Orders(arg0 *big.Int) (struct {
-	Id           *big.Int
-	Account      common.Address
-	TokenToSell  common.Address
-	TokenToBuy   common.Address
-	AmountToSell *big.Int
-	AmountToBuy  *big.Int
-	DestChain    *big.Int
-}, error) {
-	return _Swapica.Contract.Orders(&_Swapica.CallOpts, arg0)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
@@ -859,170 +573,170 @@ func (_Swapica *SwapicaTransactorSession) SwapicaInit(signers []common.Address) 
 
 // AddSigners is a paid mutator transaction binding the contract method 0xe8906a2d.
 //
-// Solidity: function addSigners(address[] signers_) returns()
-func (_Swapica *SwapicaTransactor) AddSigners(opts *bind.TransactOpts, signers_ []common.Address) (*types.Transaction, error) {
-	return _Swapica.contract.Transact(opts, "addSigners", signers_)
+// Solidity: function addSigners(address[] signers) returns()
+func (_Swapica *SwapicaTransactor) AddSigners(opts *bind.TransactOpts, signers []common.Address) (*types.Transaction, error) {
+	return _Swapica.contract.Transact(opts, "addSigners", signers)
 }
 
 // AddSigners is a paid mutator transaction binding the contract method 0xe8906a2d.
 //
-// Solidity: function addSigners(address[] signers_) returns()
-func (_Swapica *SwapicaSession) AddSigners(signers_ []common.Address) (*types.Transaction, error) {
-	return _Swapica.Contract.AddSigners(&_Swapica.TransactOpts, signers_)
+// Solidity: function addSigners(address[] signers) returns()
+func (_Swapica *SwapicaSession) AddSigners(signers []common.Address) (*types.Transaction, error) {
+	return _Swapica.Contract.AddSigners(&_Swapica.TransactOpts, signers)
 }
 
 // AddSigners is a paid mutator transaction binding the contract method 0xe8906a2d.
 //
-// Solidity: function addSigners(address[] signers_) returns()
-func (_Swapica *SwapicaTransactorSession) AddSigners(signers_ []common.Address) (*types.Transaction, error) {
-	return _Swapica.Contract.AddSigners(&_Swapica.TransactOpts, signers_)
+// Solidity: function addSigners(address[] signers) returns()
+func (_Swapica *SwapicaTransactorSession) AddSigners(signers []common.Address) (*types.Transaction, error) {
+	return _Swapica.Contract.AddSigners(&_Swapica.TransactOpts, signers)
 }
 
 // CancelMatch is a paid mutator transaction binding the contract method 0xb925c02d.
 //
-// Solidity: function cancelMatch(bytes orderData, bytes[] signatures) returns()
-func (_Swapica *SwapicaTransactor) CancelMatch(opts *bind.TransactOpts, orderData []byte, signatures [][]byte) (*types.Transaction, error) {
-	return _Swapica.contract.Transact(opts, "cancelMatch", orderData, signatures)
+// Solidity: function cancelMatch(bytes data, bytes[] signatures) returns()
+func (_Swapica *SwapicaTransactor) CancelMatch(opts *bind.TransactOpts, data []byte, signatures [][]byte) (*types.Transaction, error) {
+	return _Swapica.contract.Transact(opts, "cancelMatch", data, signatures)
 }
 
 // CancelMatch is a paid mutator transaction binding the contract method 0xb925c02d.
 //
-// Solidity: function cancelMatch(bytes orderData, bytes[] signatures) returns()
-func (_Swapica *SwapicaSession) CancelMatch(orderData []byte, signatures [][]byte) (*types.Transaction, error) {
-	return _Swapica.Contract.CancelMatch(&_Swapica.TransactOpts, orderData, signatures)
+// Solidity: function cancelMatch(bytes data, bytes[] signatures) returns()
+func (_Swapica *SwapicaSession) CancelMatch(data []byte, signatures [][]byte) (*types.Transaction, error) {
+	return _Swapica.Contract.CancelMatch(&_Swapica.TransactOpts, data, signatures)
 }
 
 // CancelMatch is a paid mutator transaction binding the contract method 0xb925c02d.
 //
-// Solidity: function cancelMatch(bytes orderData, bytes[] signatures) returns()
-func (_Swapica *SwapicaTransactorSession) CancelMatch(orderData []byte, signatures [][]byte) (*types.Transaction, error) {
-	return _Swapica.Contract.CancelMatch(&_Swapica.TransactOpts, orderData, signatures)
+// Solidity: function cancelMatch(bytes data, bytes[] signatures) returns()
+func (_Swapica *SwapicaTransactorSession) CancelMatch(data []byte, signatures [][]byte) (*types.Transaction, error) {
+	return _Swapica.Contract.CancelMatch(&_Swapica.TransactOpts, data, signatures)
 }
 
 // CancelOrder is a paid mutator transaction binding the contract method 0x514fcac7.
 //
-// Solidity: function cancelOrder(uint256 id) returns()
-func (_Swapica *SwapicaTransactor) CancelOrder(opts *bind.TransactOpts, id *big.Int) (*types.Transaction, error) {
-	return _Swapica.contract.Transact(opts, "cancelOrder", id)
+// Solidity: function cancelOrder(uint256 orderId) returns()
+func (_Swapica *SwapicaTransactor) CancelOrder(opts *bind.TransactOpts, orderId *big.Int) (*types.Transaction, error) {
+	return _Swapica.contract.Transact(opts, "cancelOrder", orderId)
 }
 
 // CancelOrder is a paid mutator transaction binding the contract method 0x514fcac7.
 //
-// Solidity: function cancelOrder(uint256 id) returns()
-func (_Swapica *SwapicaSession) CancelOrder(id *big.Int) (*types.Transaction, error) {
-	return _Swapica.Contract.CancelOrder(&_Swapica.TransactOpts, id)
+// Solidity: function cancelOrder(uint256 orderId) returns()
+func (_Swapica *SwapicaSession) CancelOrder(orderId *big.Int) (*types.Transaction, error) {
+	return _Swapica.Contract.CancelOrder(&_Swapica.TransactOpts, orderId)
 }
 
 // CancelOrder is a paid mutator transaction binding the contract method 0x514fcac7.
 //
-// Solidity: function cancelOrder(uint256 id) returns()
-func (_Swapica *SwapicaTransactorSession) CancelOrder(id *big.Int) (*types.Transaction, error) {
-	return _Swapica.Contract.CancelOrder(&_Swapica.TransactOpts, id)
+// Solidity: function cancelOrder(uint256 orderId) returns()
+func (_Swapica *SwapicaTransactorSession) CancelOrder(orderId *big.Int) (*types.Transaction, error) {
+	return _Swapica.Contract.CancelOrder(&_Swapica.TransactOpts, orderId)
 }
 
 // CreateMatch is a paid mutator transaction binding the contract method 0xf7662788.
 //
-// Solidity: function createMatch(bytes orderData, bytes[] signatures) payable returns()
-func (_Swapica *SwapicaTransactor) CreateMatch(opts *bind.TransactOpts, orderData []byte, signatures [][]byte) (*types.Transaction, error) {
-	return _Swapica.contract.Transact(opts, "createMatch", orderData, signatures)
+// Solidity: function createMatch(bytes data, bytes[] signatures) payable returns()
+func (_Swapica *SwapicaTransactor) CreateMatch(opts *bind.TransactOpts, data []byte, signatures [][]byte) (*types.Transaction, error) {
+	return _Swapica.contract.Transact(opts, "createMatch", data, signatures)
 }
 
 // CreateMatch is a paid mutator transaction binding the contract method 0xf7662788.
 //
-// Solidity: function createMatch(bytes orderData, bytes[] signatures) payable returns()
-func (_Swapica *SwapicaSession) CreateMatch(orderData []byte, signatures [][]byte) (*types.Transaction, error) {
-	return _Swapica.Contract.CreateMatch(&_Swapica.TransactOpts, orderData, signatures)
+// Solidity: function createMatch(bytes data, bytes[] signatures) payable returns()
+func (_Swapica *SwapicaSession) CreateMatch(data []byte, signatures [][]byte) (*types.Transaction, error) {
+	return _Swapica.Contract.CreateMatch(&_Swapica.TransactOpts, data, signatures)
 }
 
 // CreateMatch is a paid mutator transaction binding the contract method 0xf7662788.
 //
-// Solidity: function createMatch(bytes orderData, bytes[] signatures) payable returns()
-func (_Swapica *SwapicaTransactorSession) CreateMatch(orderData []byte, signatures [][]byte) (*types.Transaction, error) {
-	return _Swapica.Contract.CreateMatch(&_Swapica.TransactOpts, orderData, signatures)
+// Solidity: function createMatch(bytes data, bytes[] signatures) payable returns()
+func (_Swapica *SwapicaTransactorSession) CreateMatch(data []byte, signatures [][]byte) (*types.Transaction, error) {
+	return _Swapica.Contract.CreateMatch(&_Swapica.TransactOpts, data, signatures)
 }
 
-// CreateOrder is a paid mutator transaction binding the contract method 0x96d4f640.
+// CreateOrder is a paid mutator transaction binding the contract method 0xb514f8f7.
 //
-// Solidity: function createOrder(address tokenToSell, uint256 amountToSell, address tokenToBuy, uint256 amountToBuy, uint256 destChain) payable returns()
-func (_Swapica *SwapicaTransactor) CreateOrder(opts *bind.TransactOpts, tokenToSell common.Address, amountToSell *big.Int, tokenToBuy common.Address, amountToBuy *big.Int, destChain *big.Int) (*types.Transaction, error) {
-	return _Swapica.contract.Transact(opts, "createOrder", tokenToSell, amountToSell, tokenToBuy, amountToBuy, destChain)
+// Solidity: function createOrder((address,uint256,address,uint256,uint256) request) payable returns()
+func (_Swapica *SwapicaTransactor) CreateOrder(opts *bind.TransactOpts, request ISwapicaCreateOrderRequest) (*types.Transaction, error) {
+	return _Swapica.contract.Transact(opts, "createOrder", request)
 }
 
-// CreateOrder is a paid mutator transaction binding the contract method 0x96d4f640.
+// CreateOrder is a paid mutator transaction binding the contract method 0xb514f8f7.
 //
-// Solidity: function createOrder(address tokenToSell, uint256 amountToSell, address tokenToBuy, uint256 amountToBuy, uint256 destChain) payable returns()
-func (_Swapica *SwapicaSession) CreateOrder(tokenToSell common.Address, amountToSell *big.Int, tokenToBuy common.Address, amountToBuy *big.Int, destChain *big.Int) (*types.Transaction, error) {
-	return _Swapica.Contract.CreateOrder(&_Swapica.TransactOpts, tokenToSell, amountToSell, tokenToBuy, amountToBuy, destChain)
+// Solidity: function createOrder((address,uint256,address,uint256,uint256) request) payable returns()
+func (_Swapica *SwapicaSession) CreateOrder(request ISwapicaCreateOrderRequest) (*types.Transaction, error) {
+	return _Swapica.Contract.CreateOrder(&_Swapica.TransactOpts, request)
 }
 
-// CreateOrder is a paid mutator transaction binding the contract method 0x96d4f640.
+// CreateOrder is a paid mutator transaction binding the contract method 0xb514f8f7.
 //
-// Solidity: function createOrder(address tokenToSell, uint256 amountToSell, address tokenToBuy, uint256 amountToBuy, uint256 destChain) payable returns()
-func (_Swapica *SwapicaTransactorSession) CreateOrder(tokenToSell common.Address, amountToSell *big.Int, tokenToBuy common.Address, amountToBuy *big.Int, destChain *big.Int) (*types.Transaction, error) {
-	return _Swapica.Contract.CreateOrder(&_Swapica.TransactOpts, tokenToSell, amountToSell, tokenToBuy, amountToBuy, destChain)
-}
-
-// ExecuteMatch is a paid mutator transaction binding the contract method 0x2a9ff0d5.
-//
-// Solidity: function executeMatch(bytes orderData, bytes[] signatures) returns()
-func (_Swapica *SwapicaTransactor) ExecuteMatch(opts *bind.TransactOpts, orderData []byte, signatures [][]byte) (*types.Transaction, error) {
-	return _Swapica.contract.Transact(opts, "executeMatch", orderData, signatures)
+// Solidity: function createOrder((address,uint256,address,uint256,uint256) request) payable returns()
+func (_Swapica *SwapicaTransactorSession) CreateOrder(request ISwapicaCreateOrderRequest) (*types.Transaction, error) {
+	return _Swapica.Contract.CreateOrder(&_Swapica.TransactOpts, request)
 }
 
 // ExecuteMatch is a paid mutator transaction binding the contract method 0x2a9ff0d5.
 //
-// Solidity: function executeMatch(bytes orderData, bytes[] signatures) returns()
-func (_Swapica *SwapicaSession) ExecuteMatch(orderData []byte, signatures [][]byte) (*types.Transaction, error) {
-	return _Swapica.Contract.ExecuteMatch(&_Swapica.TransactOpts, orderData, signatures)
+// Solidity: function executeMatch(bytes data, bytes[] signatures) returns()
+func (_Swapica *SwapicaTransactor) ExecuteMatch(opts *bind.TransactOpts, data []byte, signatures [][]byte) (*types.Transaction, error) {
+	return _Swapica.contract.Transact(opts, "executeMatch", data, signatures)
 }
 
 // ExecuteMatch is a paid mutator transaction binding the contract method 0x2a9ff0d5.
 //
-// Solidity: function executeMatch(bytes orderData, bytes[] signatures) returns()
-func (_Swapica *SwapicaTransactorSession) ExecuteMatch(orderData []byte, signatures [][]byte) (*types.Transaction, error) {
-	return _Swapica.Contract.ExecuteMatch(&_Swapica.TransactOpts, orderData, signatures)
+// Solidity: function executeMatch(bytes data, bytes[] signatures) returns()
+func (_Swapica *SwapicaSession) ExecuteMatch(data []byte, signatures [][]byte) (*types.Transaction, error) {
+	return _Swapica.Contract.ExecuteMatch(&_Swapica.TransactOpts, data, signatures)
+}
+
+// ExecuteMatch is a paid mutator transaction binding the contract method 0x2a9ff0d5.
+//
+// Solidity: function executeMatch(bytes data, bytes[] signatures) returns()
+func (_Swapica *SwapicaTransactorSession) ExecuteMatch(data []byte, signatures [][]byte) (*types.Transaction, error) {
+	return _Swapica.Contract.ExecuteMatch(&_Swapica.TransactOpts, data, signatures)
 }
 
 // ExecuteOrder is a paid mutator transaction binding the contract method 0x14d41b45.
 //
-// Solidity: function executeOrder(bytes orderData, bytes[] signatures) returns()
-func (_Swapica *SwapicaTransactor) ExecuteOrder(opts *bind.TransactOpts, orderData []byte, signatures [][]byte) (*types.Transaction, error) {
-	return _Swapica.contract.Transact(opts, "executeOrder", orderData, signatures)
+// Solidity: function executeOrder(bytes data, bytes[] signatures) returns()
+func (_Swapica *SwapicaTransactor) ExecuteOrder(opts *bind.TransactOpts, data []byte, signatures [][]byte) (*types.Transaction, error) {
+	return _Swapica.contract.Transact(opts, "executeOrder", data, signatures)
 }
 
 // ExecuteOrder is a paid mutator transaction binding the contract method 0x14d41b45.
 //
-// Solidity: function executeOrder(bytes orderData, bytes[] signatures) returns()
-func (_Swapica *SwapicaSession) ExecuteOrder(orderData []byte, signatures [][]byte) (*types.Transaction, error) {
-	return _Swapica.Contract.ExecuteOrder(&_Swapica.TransactOpts, orderData, signatures)
+// Solidity: function executeOrder(bytes data, bytes[] signatures) returns()
+func (_Swapica *SwapicaSession) ExecuteOrder(data []byte, signatures [][]byte) (*types.Transaction, error) {
+	return _Swapica.Contract.ExecuteOrder(&_Swapica.TransactOpts, data, signatures)
 }
 
 // ExecuteOrder is a paid mutator transaction binding the contract method 0x14d41b45.
 //
-// Solidity: function executeOrder(bytes orderData, bytes[] signatures) returns()
-func (_Swapica *SwapicaTransactorSession) ExecuteOrder(orderData []byte, signatures [][]byte) (*types.Transaction, error) {
-	return _Swapica.Contract.ExecuteOrder(&_Swapica.TransactOpts, orderData, signatures)
+// Solidity: function executeOrder(bytes data, bytes[] signatures) returns()
+func (_Swapica *SwapicaTransactorSession) ExecuteOrder(data []byte, signatures [][]byte) (*types.Transaction, error) {
+	return _Swapica.Contract.ExecuteOrder(&_Swapica.TransactOpts, data, signatures)
 }
 
 // RemoveSigners is a paid mutator transaction binding the contract method 0x8d361e43.
 //
-// Solidity: function removeSigners(address[] signers_) returns()
-func (_Swapica *SwapicaTransactor) RemoveSigners(opts *bind.TransactOpts, signers_ []common.Address) (*types.Transaction, error) {
-	return _Swapica.contract.Transact(opts, "removeSigners", signers_)
+// Solidity: function removeSigners(address[] signers) returns()
+func (_Swapica *SwapicaTransactor) RemoveSigners(opts *bind.TransactOpts, signers []common.Address) (*types.Transaction, error) {
+	return _Swapica.contract.Transact(opts, "removeSigners", signers)
 }
 
 // RemoveSigners is a paid mutator transaction binding the contract method 0x8d361e43.
 //
-// Solidity: function removeSigners(address[] signers_) returns()
-func (_Swapica *SwapicaSession) RemoveSigners(signers_ []common.Address) (*types.Transaction, error) {
-	return _Swapica.Contract.RemoveSigners(&_Swapica.TransactOpts, signers_)
+// Solidity: function removeSigners(address[] signers) returns()
+func (_Swapica *SwapicaSession) RemoveSigners(signers []common.Address) (*types.Transaction, error) {
+	return _Swapica.Contract.RemoveSigners(&_Swapica.TransactOpts, signers)
 }
 
 // RemoveSigners is a paid mutator transaction binding the contract method 0x8d361e43.
 //
-// Solidity: function removeSigners(address[] signers_) returns()
-func (_Swapica *SwapicaTransactorSession) RemoveSigners(signers_ []common.Address) (*types.Transaction, error) {
-	return _Swapica.Contract.RemoveSigners(&_Swapica.TransactOpts, signers_)
+// Solidity: function removeSigners(address[] signers) returns()
+func (_Swapica *SwapicaTransactorSession) RemoveSigners(signers []common.Address) (*types.Transaction, error) {
+	return _Swapica.Contract.RemoveSigners(&_Swapica.TransactOpts, signers)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
@@ -1048,23 +762,23 @@ func (_Swapica *SwapicaTransactorSession) RenounceOwnership() (*types.Transactio
 
 // SetSignaturesThreshold is a paid mutator transaction binding the contract method 0xbf1fe08f.
 //
-// Solidity: function setSignaturesThreshold(uint256 signaturesThreshold_) returns()
-func (_Swapica *SwapicaTransactor) SetSignaturesThreshold(opts *bind.TransactOpts, signaturesThreshold_ *big.Int) (*types.Transaction, error) {
-	return _Swapica.contract.Transact(opts, "setSignaturesThreshold", signaturesThreshold_)
+// Solidity: function setSignaturesThreshold(uint256 _signaturesThreshold) returns()
+func (_Swapica *SwapicaTransactor) SetSignaturesThreshold(opts *bind.TransactOpts, _signaturesThreshold *big.Int) (*types.Transaction, error) {
+	return _Swapica.contract.Transact(opts, "setSignaturesThreshold", _signaturesThreshold)
 }
 
 // SetSignaturesThreshold is a paid mutator transaction binding the contract method 0xbf1fe08f.
 //
-// Solidity: function setSignaturesThreshold(uint256 signaturesThreshold_) returns()
-func (_Swapica *SwapicaSession) SetSignaturesThreshold(signaturesThreshold_ *big.Int) (*types.Transaction, error) {
-	return _Swapica.Contract.SetSignaturesThreshold(&_Swapica.TransactOpts, signaturesThreshold_)
+// Solidity: function setSignaturesThreshold(uint256 _signaturesThreshold) returns()
+func (_Swapica *SwapicaSession) SetSignaturesThreshold(_signaturesThreshold *big.Int) (*types.Transaction, error) {
+	return _Swapica.Contract.SetSignaturesThreshold(&_Swapica.TransactOpts, _signaturesThreshold)
 }
 
 // SetSignaturesThreshold is a paid mutator transaction binding the contract method 0xbf1fe08f.
 //
-// Solidity: function setSignaturesThreshold(uint256 signaturesThreshold_) returns()
-func (_Swapica *SwapicaTransactorSession) SetSignaturesThreshold(signaturesThreshold_ *big.Int) (*types.Transaction, error) {
-	return _Swapica.Contract.SetSignaturesThreshold(&_Swapica.TransactOpts, signaturesThreshold_)
+// Solidity: function setSignaturesThreshold(uint256 _signaturesThreshold) returns()
+func (_Swapica *SwapicaTransactorSession) SetSignaturesThreshold(_signaturesThreshold *big.Int) (*types.Transaction, error) {
+	return _Swapica.Contract.SetSignaturesThreshold(&_Swapica.TransactOpts, _signaturesThreshold)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
@@ -1543,6 +1257,140 @@ func (_Swapica *SwapicaFilterer) ParseInitialized(log types.Log) (*SwapicaInitia
 	return event, nil
 }
 
+// SwapicaMatchCreatedIterator is returned from FilterMatchCreated and is used to iterate over the raw logs and unpacked data for MatchCreated events raised by the Swapica contract.
+type SwapicaMatchCreatedIterator struct {
+	Event *SwapicaMatchCreated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *SwapicaMatchCreatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(SwapicaMatchCreated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(SwapicaMatchCreated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *SwapicaMatchCreatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *SwapicaMatchCreatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// SwapicaMatchCreated represents a MatchCreated event raised by the Swapica contract.
+type SwapicaMatchCreated struct {
+	Match ISwapicaMatch
+	Raw   types.Log // Blockchain specific contextual infos
+}
+
+// FilterMatchCreated is a free log retrieval operation binding the contract event 0xe8d8cb924d3a36c9b682db84ed911e0c87a9ffec1067d85bb5d3758406f0d621.
+//
+// Solidity: event MatchCreated((uint8,uint256,uint256,address,address,uint256,uint256) match_)
+func (_Swapica *SwapicaFilterer) FilterMatchCreated(opts *bind.FilterOpts) (*SwapicaMatchCreatedIterator, error) {
+
+	logs, sub, err := _Swapica.contract.FilterLogs(opts, "MatchCreated")
+	if err != nil {
+		return nil, err
+	}
+	return &SwapicaMatchCreatedIterator{contract: _Swapica.contract, event: "MatchCreated", logs: logs, sub: sub}, nil
+}
+
+// WatchMatchCreated is a free log subscription operation binding the contract event 0xe8d8cb924d3a36c9b682db84ed911e0c87a9ffec1067d85bb5d3758406f0d621.
+//
+// Solidity: event MatchCreated((uint8,uint256,uint256,address,address,uint256,uint256) match_)
+func (_Swapica *SwapicaFilterer) WatchMatchCreated(opts *bind.WatchOpts, sink chan<- *SwapicaMatchCreated) (event.Subscription, error) {
+
+	logs, sub, err := _Swapica.contract.WatchLogs(opts, "MatchCreated")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(SwapicaMatchCreated)
+				if err := _Swapica.contract.UnpackLog(event, "MatchCreated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseMatchCreated is a log parse operation binding the contract event 0xe8d8cb924d3a36c9b682db84ed911e0c87a9ffec1067d85bb5d3758406f0d621.
+//
+// Solidity: event MatchCreated((uint8,uint256,uint256,address,address,uint256,uint256) match_)
+func (_Swapica *SwapicaFilterer) ParseMatchCreated(log types.Log) (*SwapicaMatchCreated, error) {
+	event := new(SwapicaMatchCreated)
+	if err := _Swapica.contract.UnpackLog(event, "MatchCreated", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
 // SwapicaMatchUpdatedIterator is returned from FilterMatchUpdated and is used to iterate over the raw logs and unpacked data for MatchUpdated events raised by the Swapica contract.
 type SwapicaMatchUpdatedIterator struct {
 	Event *SwapicaMatchUpdated // Event containing the contract specifics and raw log
@@ -1612,47 +1460,39 @@ func (it *SwapicaMatchUpdatedIterator) Close() error {
 
 // SwapicaMatchUpdated represents a MatchUpdated event raised by the Swapica contract.
 type SwapicaMatchUpdated struct {
-	Id     *big.Int
-	Status SwapicaStatus
-	Raw    types.Log // Blockchain specific contextual infos
+	MatchId *big.Int
+	Status  uint8
+	Raw     types.Log // Blockchain specific contextual infos
 }
 
-// FilterMatchUpdated is a free log retrieval operation binding the contract event 0xa9b5f1914efdf39593d3001993d7ebde53d6c14bf4ea8b5af4c545f81bf47120.
+// FilterMatchUpdated is a free log retrieval operation binding the contract event 0xf194a47302430b75146eed29b4833f4c3c52e4c13f14dce86af88d6e1df1f20e.
 //
-// Solidity: event MatchUpdated(uint256 indexed id, (uint8,uint256,address) indexed status)
-func (_Swapica *SwapicaFilterer) FilterMatchUpdated(opts *bind.FilterOpts, id []*big.Int, status []SwapicaStatus) (*SwapicaMatchUpdatedIterator, error) {
+// Solidity: event MatchUpdated(uint256 indexed matchId, uint8 status)
+func (_Swapica *SwapicaFilterer) FilterMatchUpdated(opts *bind.FilterOpts, matchId []*big.Int) (*SwapicaMatchUpdatedIterator, error) {
 
-	var idRule []interface{}
-	for _, idItem := range id {
-		idRule = append(idRule, idItem)
-	}
-	var statusRule []interface{}
-	for _, statusItem := range status {
-		statusRule = append(statusRule, statusItem)
+	var matchIdRule []interface{}
+	for _, matchIdItem := range matchId {
+		matchIdRule = append(matchIdRule, matchIdItem)
 	}
 
-	logs, sub, err := _Swapica.contract.FilterLogs(opts, "MatchUpdated", idRule, statusRule)
+	logs, sub, err := _Swapica.contract.FilterLogs(opts, "MatchUpdated", matchIdRule)
 	if err != nil {
 		return nil, err
 	}
 	return &SwapicaMatchUpdatedIterator{contract: _Swapica.contract, event: "MatchUpdated", logs: logs, sub: sub}, nil
 }
 
-// WatchMatchUpdated is a free log subscription operation binding the contract event 0xa9b5f1914efdf39593d3001993d7ebde53d6c14bf4ea8b5af4c545f81bf47120.
+// WatchMatchUpdated is a free log subscription operation binding the contract event 0xf194a47302430b75146eed29b4833f4c3c52e4c13f14dce86af88d6e1df1f20e.
 //
-// Solidity: event MatchUpdated(uint256 indexed id, (uint8,uint256,address) indexed status)
-func (_Swapica *SwapicaFilterer) WatchMatchUpdated(opts *bind.WatchOpts, sink chan<- *SwapicaMatchUpdated, id []*big.Int, status []SwapicaStatus) (event.Subscription, error) {
+// Solidity: event MatchUpdated(uint256 indexed matchId, uint8 status)
+func (_Swapica *SwapicaFilterer) WatchMatchUpdated(opts *bind.WatchOpts, sink chan<- *SwapicaMatchUpdated, matchId []*big.Int) (event.Subscription, error) {
 
-	var idRule []interface{}
-	for _, idItem := range id {
-		idRule = append(idRule, idItem)
-	}
-	var statusRule []interface{}
-	for _, statusItem := range status {
-		statusRule = append(statusRule, statusItem)
+	var matchIdRule []interface{}
+	for _, matchIdItem := range matchId {
+		matchIdRule = append(matchIdRule, matchIdItem)
 	}
 
-	logs, sub, err := _Swapica.contract.WatchLogs(opts, "MatchUpdated", idRule, statusRule)
+	logs, sub, err := _Swapica.contract.WatchLogs(opts, "MatchUpdated", matchIdRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1684,12 +1524,146 @@ func (_Swapica *SwapicaFilterer) WatchMatchUpdated(opts *bind.WatchOpts, sink ch
 	}), nil
 }
 
-// ParseMatchUpdated is a log parse operation binding the contract event 0xa9b5f1914efdf39593d3001993d7ebde53d6c14bf4ea8b5af4c545f81bf47120.
+// ParseMatchUpdated is a log parse operation binding the contract event 0xf194a47302430b75146eed29b4833f4c3c52e4c13f14dce86af88d6e1df1f20e.
 //
-// Solidity: event MatchUpdated(uint256 indexed id, (uint8,uint256,address) indexed status)
+// Solidity: event MatchUpdated(uint256 indexed matchId, uint8 status)
 func (_Swapica *SwapicaFilterer) ParseMatchUpdated(log types.Log) (*SwapicaMatchUpdated, error) {
 	event := new(SwapicaMatchUpdated)
 	if err := _Swapica.contract.UnpackLog(event, "MatchUpdated", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// SwapicaOrderCreatedIterator is returned from FilterOrderCreated and is used to iterate over the raw logs and unpacked data for OrderCreated events raised by the Swapica contract.
+type SwapicaOrderCreatedIterator struct {
+	Event *SwapicaOrderCreated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *SwapicaOrderCreatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(SwapicaOrderCreated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(SwapicaOrderCreated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *SwapicaOrderCreatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *SwapicaOrderCreatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// SwapicaOrderCreated represents a OrderCreated event raised by the Swapica contract.
+type SwapicaOrderCreated struct {
+	Order ISwapicaOrder
+	Raw   types.Log // Blockchain specific contextual infos
+}
+
+// FilterOrderCreated is a free log retrieval operation binding the contract event 0x9eeb92ce2bcf64d3a4cb135c0df74fd644fd4e613c788959ffdbed5a2b400546.
+//
+// Solidity: event OrderCreated(((uint8,uint256,address),uint256,address,address,uint256,address,uint256,uint256) order)
+func (_Swapica *SwapicaFilterer) FilterOrderCreated(opts *bind.FilterOpts) (*SwapicaOrderCreatedIterator, error) {
+
+	logs, sub, err := _Swapica.contract.FilterLogs(opts, "OrderCreated")
+	if err != nil {
+		return nil, err
+	}
+	return &SwapicaOrderCreatedIterator{contract: _Swapica.contract, event: "OrderCreated", logs: logs, sub: sub}, nil
+}
+
+// WatchOrderCreated is a free log subscription operation binding the contract event 0x9eeb92ce2bcf64d3a4cb135c0df74fd644fd4e613c788959ffdbed5a2b400546.
+//
+// Solidity: event OrderCreated(((uint8,uint256,address),uint256,address,address,uint256,address,uint256,uint256) order)
+func (_Swapica *SwapicaFilterer) WatchOrderCreated(opts *bind.WatchOpts, sink chan<- *SwapicaOrderCreated) (event.Subscription, error) {
+
+	logs, sub, err := _Swapica.contract.WatchLogs(opts, "OrderCreated")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(SwapicaOrderCreated)
+				if err := _Swapica.contract.UnpackLog(event, "OrderCreated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseOrderCreated is a log parse operation binding the contract event 0x9eeb92ce2bcf64d3a4cb135c0df74fd644fd4e613c788959ffdbed5a2b400546.
+//
+// Solidity: event OrderCreated(((uint8,uint256,address),uint256,address,address,uint256,address,uint256,uint256) order)
+func (_Swapica *SwapicaFilterer) ParseOrderCreated(log types.Log) (*SwapicaOrderCreated, error) {
+	event := new(SwapicaOrderCreated)
+	if err := _Swapica.contract.UnpackLog(event, "OrderCreated", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -1765,26 +1739,22 @@ func (it *SwapicaOrderUpdatedIterator) Close() error {
 
 // SwapicaOrderUpdated represents a OrderUpdated event raised by the Swapica contract.
 type SwapicaOrderUpdated struct {
-	Id     *big.Int
-	Status SwapicaStatus
-	Raw    types.Log // Blockchain specific contextual infos
+	OrderId *big.Int
+	Status  ISwapicaOrderStatus
+	Raw     types.Log // Blockchain specific contextual infos
 }
 
 // FilterOrderUpdated is a free log retrieval operation binding the contract event 0x4c59495d370247039622ce9df1b0843542a363a1b9055118689976b177709635.
 //
-// Solidity: event OrderUpdated(uint256 indexed id, (uint8,uint256,address) indexed status)
-func (_Swapica *SwapicaFilterer) FilterOrderUpdated(opts *bind.FilterOpts, id []*big.Int, status []SwapicaStatus) (*SwapicaOrderUpdatedIterator, error) {
+// Solidity: event OrderUpdated(uint256 indexed orderId, (uint8,uint256,address) status)
+func (_Swapica *SwapicaFilterer) FilterOrderUpdated(opts *bind.FilterOpts, orderId []*big.Int) (*SwapicaOrderUpdatedIterator, error) {
 
-	var idRule []interface{}
-	for _, idItem := range id {
-		idRule = append(idRule, idItem)
-	}
-	var statusRule []interface{}
-	for _, statusItem := range status {
-		statusRule = append(statusRule, statusItem)
+	var orderIdRule []interface{}
+	for _, orderIdItem := range orderId {
+		orderIdRule = append(orderIdRule, orderIdItem)
 	}
 
-	logs, sub, err := _Swapica.contract.FilterLogs(opts, "OrderUpdated", idRule, statusRule)
+	logs, sub, err := _Swapica.contract.FilterLogs(opts, "OrderUpdated", orderIdRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1793,19 +1763,15 @@ func (_Swapica *SwapicaFilterer) FilterOrderUpdated(opts *bind.FilterOpts, id []
 
 // WatchOrderUpdated is a free log subscription operation binding the contract event 0x4c59495d370247039622ce9df1b0843542a363a1b9055118689976b177709635.
 //
-// Solidity: event OrderUpdated(uint256 indexed id, (uint8,uint256,address) indexed status)
-func (_Swapica *SwapicaFilterer) WatchOrderUpdated(opts *bind.WatchOpts, sink chan<- *SwapicaOrderUpdated, id []*big.Int, status []SwapicaStatus) (event.Subscription, error) {
+// Solidity: event OrderUpdated(uint256 indexed orderId, (uint8,uint256,address) status)
+func (_Swapica *SwapicaFilterer) WatchOrderUpdated(opts *bind.WatchOpts, sink chan<- *SwapicaOrderUpdated, orderId []*big.Int) (event.Subscription, error) {
 
-	var idRule []interface{}
-	for _, idItem := range id {
-		idRule = append(idRule, idItem)
-	}
-	var statusRule []interface{}
-	for _, statusItem := range status {
-		statusRule = append(statusRule, statusItem)
+	var orderIdRule []interface{}
+	for _, orderIdItem := range orderId {
+		orderIdRule = append(orderIdRule, orderIdItem)
 	}
 
-	logs, sub, err := _Swapica.contract.WatchLogs(opts, "OrderUpdated", idRule, statusRule)
+	logs, sub, err := _Swapica.contract.WatchLogs(opts, "OrderUpdated", orderIdRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1839,7 +1805,7 @@ func (_Swapica *SwapicaFilterer) WatchOrderUpdated(opts *bind.WatchOpts, sink ch
 
 // ParseOrderUpdated is a log parse operation binding the contract event 0x4c59495d370247039622ce9df1b0843542a363a1b9055118689976b177709635.
 //
-// Solidity: event OrderUpdated(uint256 indexed id, (uint8,uint256,address) indexed status)
+// Solidity: event OrderUpdated(uint256 indexed orderId, (uint8,uint256,address) status)
 func (_Swapica *SwapicaFilterer) ParseOrderUpdated(log types.Log) (*SwapicaOrderUpdated, error) {
 	event := new(SwapicaOrderUpdated)
 	if err := _Swapica.contract.UnpackLog(event, "OrderUpdated", log); err != nil {

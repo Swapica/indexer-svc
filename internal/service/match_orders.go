@@ -7,100 +7,65 @@ import (
 	"strconv"
 
 	"github.com/Swapica/indexer-svc/internal/gobind"
-	"github.com/Swapica/order-aggregator-svc/resources"
+	"github.com/Swapica/indexer-svc/internal/service/requests"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (r *indexer) indexMatch(ctx context.Context, evt *gobind.SwapicaMatchUpdated) error {
-	childCtx, cancel := context.WithTimeout(ctx, r.requestTimeout)
-	defer cancel()
-
-	status, err := r.swapica.MatchStatus(&bind.CallOpts{Context: childCtx}, evt.Id)
+func (r *indexer) handleCreatedMatches(ctx context.Context, opts *bind.FilterOpts) (lastBlockUpdated bool, err error) {
+	it, err := r.swapica.FilterMatchCreated(opts)
 	if err != nil {
-		return errors.Wrap(err, "failed to get match order status from contract")
+		return false, errors.Wrap(err, "failed to filter MatchCreated events")
 	}
-	log := r.log.WithFields(logan.F{"match_id": evt.Id, "match_state": status.State})
+	for it.Next() {
+		if err = r.addMatch(ctx, it.Event.Match); err != nil {
+			return lastBlockUpdated, errors.Wrap(err, "failed to add match order")
+		}
 
-	if status.State == orderStateAwaitingFinalization {
-		log.Debug("match order was created, trying to get and add it")
-		err = r.addMatch(ctx, evt.Id, status)
-		return errors.Wrap(err, "failed to add created match order")
-	}
-	if status.State == orderStateNone {
-		log.Warn("found match order with state NONE, skipping it")
-		return nil
+		if b := it.Event.Raw.BlockNumber + 1; b > r.lastBlock {
+			r.lastBlock = b
+			lastBlockUpdated = true
+		}
 	}
 
-	log.Debug("match order must exist, updating its status")
-	err = r.updateMatchStatus(ctx, evt.Id, status)
-	return errors.Wrap(err, "failed to update match order status")
+	return lastBlockUpdated, errors.Wrap(it.Error(), "error occurred while iterating over MatchCreated events")
 }
 
-func (r *indexer) addMatch(ctx context.Context, id *big.Int, status gobind.SwapicaStatus) error {
-	childCtx, cancel := context.WithTimeout(ctx, r.requestTimeout)
-	defer cancel()
-
-	mo, err := r.swapica.Matches(&bind.CallOpts{Context: childCtx}, id)
+func (r *indexer) handleUpdatedMatches(ctx context.Context, opts *bind.FilterOpts) (lastBlockUpdated bool, err error) {
+	it, err := r.swapica.FilterMatchUpdated(opts, nil)
 	if err != nil {
-		return errors.Wrap(err, "failed to get match order from contract")
+		return false, errors.Wrap(err, "failed to filter MatchUpdated events")
 	}
 
-	body := resources.MatchResponse{
-		Data: resources.Match{
-			Key: resources.Key{
-				ID:   mo.Id.String(),
-				Type: resources.MATCH_ORDER,
-			},
-			Attributes: resources.MatchAttributes{
-				Account:      mo.Account.String(),
-				AmountToSell: mo.AmountToSell.String(),
-				MatchId:      nil,
-				SrcChain:     nil,
-				State:        status.State,
-				TokenToSell:  mo.TokenToSell.String(),
-			},
-			Relationships: resources.MatchRelationships{
-				OriginChain: resources.Relation{
-					Data: &resources.Key{
-						ID:   mo.OriginChain.String(),
-						Type: resources.CHAIN,
-					},
-				},
-				OriginOrder: resources.Relation{
-					Data: &resources.Key{
-						ID:   mo.OriginOrderId.String(),
-						Type: resources.ORDER,
-					},
-				},
-			},
-		},
+	for it.Next() {
+		if err = r.updateMatch(ctx, it.Event.MatchId, it.Event.Status); err != nil {
+			return lastBlockUpdated, errors.Wrap(err, "failed to update match order")
+		}
+
+		if b := it.Event.Raw.BlockNumber + 1; b > r.lastBlock {
+			r.lastBlock = b
+			lastBlockUpdated = true
+		}
 	}
 
+	return lastBlockUpdated, errors.Wrap(it.Error(), "error occurred while iterating over MatchUpdated events")
+}
+
+func (r *indexer) addMatch(ctx context.Context, mo gobind.ISwapicaMatch) error {
+	body := requests.NewAddMatch(mo, r.chainID)
 	u, _ := url.Parse("/match_orders")
-	err = r.collector.PostJSON(u, body, ctx, nil)
+	err := r.collector.PostJSON(u, body, ctx, nil)
 	if isConflict(err) {
-		r.log.WithField("match_id", mo.Id.String()).
+		r.log.WithField("match_id", mo.MatchId.String()).
 			Warn("match order already exists in collector DB, skipping it")
 		return nil
 	}
+
 	return errors.Wrap(err, "failed to add match order into collector service")
 }
 
-func (r *indexer) updateMatchStatus(ctx context.Context, id *big.Int, status gobind.SwapicaStatus) error {
-	body := resources.UpdateMatchRequest{
-		Data: resources.UpdateMatch{
-			Key: resources.Key{
-				ID:   id.String(),
-				Type: resources.MATCH_ORDER,
-			},
-			Attributes: resources.UpdateMatchAttributes{
-				State: status.State,
-			},
-		},
-	}
-
+func (r *indexer) updateMatch(ctx context.Context, id *big.Int, state uint8) error {
+	body := requests.NewUpdateMatch(id, state)
 	u, _ := url.Parse(strconv.FormatInt(r.chainID, 10) + "/match_orders")
 	err := r.collector.PatchJSON(u, body, ctx, nil)
 	return errors.Wrap(err, "failed to update match order in collector service")

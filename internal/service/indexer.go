@@ -17,14 +17,6 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-const (
-	orderStateNone uint8 = iota
-	orderStateAwaitingMatch
-	orderStateAwaitingFinalization
-)
-
-const ethAddress0 = "0x0000000000000000000000000000000000000000"
-
 type indexer struct {
 	log       *logan.Entry
 	swapica   *gobind.Swapica
@@ -47,9 +39,9 @@ func newIndexer(c config.Config, lastBlock uint64) indexer {
 }
 
 func (r *indexer) run(ctx context.Context) error {
-	lastBlockUpd := false
+	var lbu1, lbu2, lbu3, lbu4 bool // last block updated
 	defer func() {
-		if lastBlockUpd {
+		if lbu1 || lbu2 || lbu3 || lbu4 {
 			log := r.log.WithField("last_block", r.lastBlock)
 			if err := r.saveLastBlock(ctx); err != nil {
 				log.WithError(err).Error("failed to save last block")
@@ -62,13 +54,23 @@ func (r *indexer) run(ctx context.Context) error {
 	defer cancel()
 	opts := &bind.FilterOpts{Context: childCtx, Start: r.lastBlock}
 
-	lastBlockUpd, err := r.handleOrderEvents(ctx, opts)
+	lbu1, err := r.handleCreatedOrders(ctx, opts)
 	if err != nil {
-		return errors.Wrap(err, "failed to handle order events")
+		return errors.Wrap(err, "failed to handle created orders")
 	}
-	matchUpd, err := r.handleMatchEvents(ctx, opts)
-	lastBlockUpd = lastBlockUpd || matchUpd
-	return errors.Wrap(err, "failed to handle match order events")
+
+	lbu2, err = r.handleCreatedMatches(ctx, opts)
+	if err != nil {
+		return errors.Wrap(err, "failed to handle created match orders")
+	}
+
+	lbu3, err = r.handleUpdatedOrders(ctx, opts)
+	if err != nil {
+		return errors.Wrap(err, "failed to handle updated orders")
+	}
+
+	lbu4, err = r.handleUpdatedMatches(ctx, opts)
+	return errors.Wrap(err, "failed to handle updated match orders")
 }
 
 func (r *indexer) saveLastBlock(ctx context.Context) error {
@@ -84,46 +86,6 @@ func (r *indexer) saveLastBlock(ctx context.Context) error {
 	u, _ := url.Parse(strconv.FormatInt(r.chainID, 10) + "/block")
 	err := r.collector.PostJSON(u, body, ctx, nil)
 	return errors.Wrap(err, "failed to set last block in collector")
-}
-
-func (r *indexer) handleOrderEvents(ctx context.Context, opts *bind.FilterOpts) (lastBlockUpdated bool, err error) {
-	it, err := r.swapica.FilterOrderUpdated(opts, nil, nil)
-	if err != nil {
-		return false, errors.Wrap(err, "failed to filter OrderUpdated events")
-	}
-
-	for it.Next() {
-		if err = r.indexOrder(ctx, it.Event); err != nil {
-			return lastBlockUpdated, errors.Wrap(err, "failed to index order")
-		}
-
-		if b := it.Event.Raw.BlockNumber + 1; b > r.lastBlock {
-			r.lastBlock = b
-			lastBlockUpdated = true
-		}
-	}
-
-	return lastBlockUpdated, errors.Wrap(it.Error(), "error occurred while iterating over OrderUpdated events")
-}
-
-func (r *indexer) handleMatchEvents(ctx context.Context, opts *bind.FilterOpts) (lastBlockUpdated bool, err error) {
-	it, err := r.swapica.FilterMatchUpdated(opts, nil, nil)
-	if err != nil {
-		return false, errors.Wrap(err, "failed to filter MatchUpdated events")
-	}
-
-	for it.Next() {
-		if err = r.indexMatch(ctx, it.Event); err != nil {
-			return lastBlockUpdated, errors.Wrap(err, "failed to index match order")
-		}
-
-		if mb := it.Event.Raw.BlockNumber + 1; mb > r.lastBlock {
-			r.lastBlock = mb
-			lastBlockUpdated = true
-		}
-	}
-
-	return lastBlockUpdated, errors.Wrap(it.Error(), "error occurred while iterating over MatchUpdated events")
 }
 
 func isConflict(err error) bool {
