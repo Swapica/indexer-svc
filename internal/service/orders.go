@@ -12,43 +12,43 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (r *indexer) handleCreatedOrders(ctx context.Context, opts *bind.FilterOpts) (lastBlockUpdated bool, err error) {
+func (r *indexer) handleCreatedOrders(ctx context.Context, opts *bind.FilterOpts) error {
 	it, err := r.swapica.FilterOrderCreated(opts)
 	if err != nil {
-		return false, errors.Wrap(err, "failed to filter OrderCreated events")
+		return errors.Wrap(err, "failed to filter OrderCreated events")
 	}
 	for it.Next() {
 		if err = r.addOrder(ctx, it.Event.Order); err != nil {
-			return lastBlockUpdated, errors.Wrap(err, "failed to index order")
+			return errors.Wrap(err, "failed to index order")
 		}
 
 		if b := it.Event.Raw.BlockNumber + 1; b > r.lastBlock {
 			r.lastBlock = b
-			lastBlockUpdated = true
+			r.lastBlockOutdated = true
 		}
 	}
 
-	return lastBlockUpdated, errors.Wrap(it.Error(), "error occurred while iterating over OrderCreated events")
+	return errors.Wrap(it.Error(), "error occurred while iterating over OrderCreated events")
 }
 
-func (r *indexer) handleUpdatedOrders(ctx context.Context, opts *bind.FilterOpts) (lastBlockUpdated bool, err error) {
+func (r *indexer) handleUpdatedOrders(ctx context.Context, opts *bind.FilterOpts) error {
 	it, err := r.swapica.FilterOrderUpdated(opts, nil)
 	if err != nil {
-		return false, errors.Wrap(err, "failed to filter OrderUpdated events")
+		return errors.Wrap(err, "failed to filter OrderUpdated events")
 	}
 
 	for it.Next() {
 		if err = r.updateOrder(ctx, it.Event.OrderId, it.Event.Status); err != nil {
-			return lastBlockUpdated, errors.Wrap(err, "failed to index order")
+			return errors.Wrap(err, "failed to index order")
 		}
 
 		if b := it.Event.Raw.BlockNumber + 1; b > r.lastBlock {
 			r.lastBlock = b
-			lastBlockUpdated = true
+			r.lastBlockOutdated = true
 		}
 	}
 
-	return lastBlockUpdated, errors.Wrap(it.Error(), "error occurred while iterating over OrderUpdated events")
+	return errors.Wrap(it.Error(), "error occurred while iterating over OrderUpdated events")
 }
 
 func (r *indexer) addOrder(ctx context.Context, o gobind.ISwapicaOrder) error {

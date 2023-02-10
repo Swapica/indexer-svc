@@ -12,43 +12,43 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (r *indexer) handleCreatedMatches(ctx context.Context, opts *bind.FilterOpts) (lastBlockUpdated bool, err error) {
+func (r *indexer) handleCreatedMatches(ctx context.Context, opts *bind.FilterOpts) error {
 	it, err := r.swapica.FilterMatchCreated(opts)
 	if err != nil {
-		return false, errors.Wrap(err, "failed to filter MatchCreated events")
+		return errors.Wrap(err, "failed to filter MatchCreated events")
 	}
 	for it.Next() {
 		if err = r.addMatch(ctx, it.Event.Match); err != nil {
-			return lastBlockUpdated, errors.Wrap(err, "failed to add match order")
+			return errors.Wrap(err, "failed to add match order")
 		}
 
 		if b := it.Event.Raw.BlockNumber + 1; b > r.lastBlock {
 			r.lastBlock = b
-			lastBlockUpdated = true
+			r.lastBlockOutdated = true
 		}
 	}
 
-	return lastBlockUpdated, errors.Wrap(it.Error(), "error occurred while iterating over MatchCreated events")
+	return errors.Wrap(it.Error(), "error occurred while iterating over MatchCreated events")
 }
 
-func (r *indexer) handleUpdatedMatches(ctx context.Context, opts *bind.FilterOpts) (lastBlockUpdated bool, err error) {
+func (r *indexer) handleUpdatedMatches(ctx context.Context, opts *bind.FilterOpts) error {
 	it, err := r.swapica.FilterMatchUpdated(opts, nil)
 	if err != nil {
-		return false, errors.Wrap(err, "failed to filter MatchUpdated events")
+		return errors.Wrap(err, "failed to filter MatchUpdated events")
 	}
 
 	for it.Next() {
 		if err = r.updateMatch(ctx, it.Event.MatchId, it.Event.Status); err != nil {
-			return lastBlockUpdated, errors.Wrap(err, "failed to update match order")
+			return errors.Wrap(err, "failed to update match order")
 		}
 
 		if b := it.Event.Raw.BlockNumber + 1; b > r.lastBlock {
 			r.lastBlock = b
-			lastBlockUpdated = true
+			r.lastBlockOutdated = true
 		}
 	}
 
-	return lastBlockUpdated, errors.Wrap(it.Error(), "error occurred while iterating over MatchUpdated events")
+	return errors.Wrap(it.Error(), "error occurred while iterating over MatchUpdated events")
 }
 
 func (r *indexer) addMatch(ctx context.Context, mo gobind.ISwapicaMatch) error {
