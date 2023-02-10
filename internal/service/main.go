@@ -32,16 +32,18 @@ func (s *service) run() error {
 
 	ctx := context.Background()
 	runner := newIndexer(s.cfg, last)
+	period := s.cfg.Network().IndexPeriod
 
-	s.log.Infof("catching up the network from the block number %d", last)
-	if err = runner.catchUp(ctx, s.cfg.Network().BlockRange); err != nil {
-		return errors.Wrap(err, "failed to catch up the network")
+	latest, err := runner.getNetworkLatestBlock(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to get block for initial catch-up")
+	}
+	if err = runner.catchUp(ctx, latest); err != nil {
+		return errors.Wrap(err, "failed to perform network initial catch-up")
 	}
 
-	s.log.Infof("listening events in normal mode from the block number %d", runner.lastBlock)
-	running.WithBackOff(ctx, s.log, "indexer", runner.run,
-		s.cfg.Network().IndexPeriod, ethBlockTime, 10*time.Minute)
-
+	time.Sleep(period) // prevent log about short period
+	running.WithBackOff(ctx, s.log, "indexer", runner.run, period, ethBlockTime, 10*time.Minute)
 	return nil
 }
 
@@ -77,4 +79,9 @@ func (s *service) getLastBlock() (uint64, error) {
 
 	n, err := strconv.ParseUint(resp.Data.ID, 10, 64)
 	return n, errors.Wrap(err, "failed to parse received block number", map[string]interface{}{"data.id": resp.Data.ID})
+}
+
+func (s *service) getNetworkLatestBlock(ctx context.Context) (uint64, error) {
+	i := newIndexer(s.cfg, 0)
+	return i.getNetworkLatestBlock(ctx)
 }

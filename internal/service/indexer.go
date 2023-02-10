@@ -25,6 +25,7 @@ type indexer struct {
 	ethClient *ethclient.Client
 
 	chainID           int64
+	blockRange        uint64
 	lastBlock         uint64
 	lastBlockOutdated bool
 	requestTimeout    time.Duration
@@ -37,32 +38,52 @@ func newIndexer(c config.Config, lastBlock uint64) indexer {
 		collector:      c.Collector(),
 		ethClient:      c.Network().EthClient,
 		chainID:        c.Network().ChainID,
+		blockRange:     c.Network().BlockRange,
 		lastBlock:      lastBlock,
 		requestTimeout: c.Network().RequestTimeout,
 	}
 }
 
 func (r *indexer) run(ctx context.Context) error {
+	var err error
+	currentBlock := r.lastBlock
+	opts := &bind.FilterOpts{Start: r.lastBlock + 1}
+
 	defer func() { r.updateLastBlock(ctx) }()
 
-	// ensure that on the next iteration it filters precisely from currBlock+1 to neither skip orders, nor get duplicates
-	currBlock, err := r.getNetworkLatestBlock(ctx)
-	if err != nil {
-		return errors.Wrap(err, "failed to get the latest block from the network")
+	// For Infura nodes it is often no need to limit block range, therefore it's better to save requests
+	if r.blockRange != 0 {
+		if currentBlock, err = r.getNetworkLatestBlock(ctx); err != nil {
+			return errors.Wrap(err, "failed to get the latest block from the network")
+		}
+		log := r.log.WithField("current_block", currentBlock)
+
+		if currentBlock == r.lastBlock {
+			log.Info("current block is equal to the saved one, index_period might be too short; skipping iteration")
+			return nil
+		}
+
+		if currentBlock > r.lastBlock+r.blockRange+1 {
+			log.Info("block range is too wide, step-by-step catch-up required")
+			err = r.catchUp(ctx, currentBlock)
+			if err != nil {
+				return errors.Wrap(err, "failed to catch up the network")
+			}
+			return nil
+		}
+		r.lastBlock = currentBlock
 	}
 
-	opts := &bind.FilterOpts{Start: r.lastBlock + 1, End: &currBlock}
-	r.log.Debugf("filtering events with params: fromBlock=%d, toBlock=%d", opts.Start, *opts.End)
 	if err = r.handleEvents(ctx, opts); err != nil {
 		return errors.Wrap(err, "failed to handle events")
 	}
 
-	r.lastBlock = currBlock
-	r.lastBlockOutdated = true
+	r.lastBlockOutdated = r.lastBlockOutdated || r.lastBlock != currentBlock
 	return nil
 }
 
 func (r *indexer) handleEvents(ctx context.Context, opts *bind.FilterOpts) error {
+	r.log.Debugf("filtering events with fromBlock=%d", opts.Start)
 	child, cancel := context.WithTimeout(ctx, r.requestTimeout)
 	defer cancel()
 	opts.Context = child
