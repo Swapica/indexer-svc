@@ -52,12 +52,14 @@ func (r *indexer) handleUpdatedMatches(ctx context.Context, opts *bind.FilterOpt
 }
 
 func (r *indexer) addMatch(ctx context.Context, mo gobind.ISwapicaMatch) error {
+	log := r.log.WithField("match_id", mo.MatchId.String())
+	log.Debug("adding new match order")
 	body := requests.NewAddMatch(mo, r.chainID)
 	u, _ := url.Parse("/match_orders")
+
 	err := r.collector.PostJSON(u, body, ctx, nil)
 	if isConflict(err) {
-		r.log.WithField("match_id", mo.MatchId.String()).
-			Warn("match order already exists in collector DB, skipping it")
+		log.Warn("match order already exists in collector DB, skipping it")
 		return nil
 	}
 
@@ -65,6 +67,7 @@ func (r *indexer) addMatch(ctx context.Context, mo gobind.ISwapicaMatch) error {
 }
 
 func (r *indexer) updateMatch(ctx context.Context, id *big.Int, state uint8) error {
+	r.log.WithField("match_id", id.String()).Debug("updating match state")
 	body := requests.NewUpdateMatch(id, state)
 	u, _ := url.Parse(strconv.FormatInt(r.chainID, 10) + "/match_orders")
 	err := r.collector.PatchJSON(u, body, ctx, nil)

@@ -52,12 +52,14 @@ func (r *indexer) handleUpdatedOrders(ctx context.Context, opts *bind.FilterOpts
 }
 
 func (r *indexer) addOrder(ctx context.Context, o gobind.ISwapicaOrder) error {
+	log := r.log.WithField("order_id", o.OrderId.String())
+	log.Debug("adding new order")
 	body := requests.NewAddOrder(o, r.chainID)
 	u, _ := url.Parse("/orders")
+
 	err := r.collector.PostJSON(u, body, ctx, nil)
 	if isConflict(err) {
-		r.log.WithField("order_id", o.OrderId.String()).
-			Warn("order already exists in collector DB, skipping it")
+		log.Warn("order already exists in collector DB, skipping it")
 		return nil
 	}
 
@@ -65,6 +67,7 @@ func (r *indexer) addOrder(ctx context.Context, o gobind.ISwapicaOrder) error {
 }
 
 func (r *indexer) updateOrder(ctx context.Context, id *big.Int, status gobind.ISwapicaOrderStatus) error {
+	r.log.WithField("order_id", id.String()).Debug("updating order status")
 	body := requests.NewUpdateOrder(id, status)
 	u, _ := url.Parse(strconv.FormatInt(r.chainID, 10) + "/orders")
 	err := r.collector.PatchJSON(u, body, ctx, nil)
