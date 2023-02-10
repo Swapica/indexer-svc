@@ -53,12 +53,24 @@ func (r *indexer) run(ctx context.Context) error {
 		}
 	}()
 
+	// ensure that on the next iteration it filters precisely from currBlock+1 to neither skip orders, nor get duplicates
+	currBlock, err := r.ethClient.BlockNumber(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to get latest block from the network")
+	}
+
 	childCtx, cancel := context.WithTimeout(ctx, r.requestTimeout)
 	defer cancel()
-	opts := &bind.FilterOpts{Context: childCtx, Start: r.lastBlock}
+	opts := &bind.FilterOpts{Context: childCtx, Start: r.lastBlock, End: &currBlock}
 
-	lastBlockUpdated, err := r.handleEvents(ctx, opts)
-	return errors.Wrap(err, "failed to handle events")
+	lastBlockUpdated, err = r.handleEvents(ctx, opts)
+	if err != nil {
+		return errors.Wrap(err, "failed to handle events")
+	}
+
+	r.lastBlock = currBlock + 1 // see catch_up.go
+	lastBlockUpdated = true
+	return nil
 }
 
 func (r *indexer) handleEvents(ctx context.Context, opts *bind.FilterOpts) (bool, error) {

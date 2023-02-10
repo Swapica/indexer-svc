@@ -41,6 +41,7 @@ func (r *indexer) catchUp(ctx context.Context, blockRange uint64) error {
 	}
 	lastBlockUpdated = true
 
+	// +1, because for eth_getLogs events with blockNumber == fromBlock or toBlock are included, so intersection is avoided
 	for start := r.lastBlock + 1; start <= currBlock; start += blockRange + 1 {
 		end := start + blockRange
 		if end > currBlock {
