@@ -52,6 +52,7 @@ func (r *indexer) run(ctx context.Context) error {
 	}
 
 	opts := &bind.FilterOpts{Start: r.lastBlock, End: &currBlock}
+	r.log.Debugf("filtering events with params: fromBlock=%d, toBlock=%d", opts.Start, *opts.End)
 	if err = r.handleEvents(ctx, opts); err != nil {
 		return errors.Wrap(err, "failed to handle events")
 	}
