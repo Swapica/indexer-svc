@@ -16,8 +16,8 @@ func NewUpdateOrder(id *big.Int, status gobind.ISwapicaOrderStatus) resources.Up
 	}
 
 	var rel *resources.UpdateOrderRelationships
-	// warn: ensure it is not filled with 0 when it's empty
-	if ex := status.MatchId; ex == nil {
+	// fixme: ensure it is not filled with 0 when it's empty
+	if ex := status.MatchId; ex != nil {
 		rel = &resources.UpdateOrderRelationships{
 			ExecutedBy: &resources.Relation{
 				Data: &resources.Key{

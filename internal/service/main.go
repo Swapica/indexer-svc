@@ -28,10 +28,17 @@ func (s *service) run() error {
 		return errors.Wrap(err, "failed to get last block")
 	}
 
-	s.log.Infof("going to listen events from the block number %d", last)
+	ctx := context.Background()
 	runner := newIndexer(s.cfg, last)
-	running.WithBackOff(context.Background(), s.log, "indexer", runner.run,
-		s.cfg.Network().IndexPeriod, time.Second/2, time.Minute)
+
+	s.log.Infof("catching up the network from the block number %d", last)
+	if err = runner.catchUp(ctx, s.cfg.Network().BlockRange); err != nil {
+		return errors.Wrap(err, "failed to catch up the network")
+	}
+
+	s.log.Infof("listening events in normal mode from the block number %d", runner.lastBlock)
+	running.WithBackOff(ctx, s.log, "indexer", runner.run,
+		s.cfg.Network().IndexPeriod, 5*time.Second, 10*time.Minute)
 
 	return nil
 }
@@ -50,13 +57,18 @@ func Run(cfg config.Config) {
 }
 
 func (s *service) getLastBlock() (uint64, error) {
+	last := s.cfg.Network().OverrideLastBlock
+	if last != nil {
+		return *last, nil
+	}
+
 	// No error can occur when parsing int64 + const_string
 	path, _ := url.Parse(strconv.FormatInt(s.cfg.Network().ChainID, 10) + "/block")
 
 	var resp resources.BlockResponse
 	if err := s.cfg.Collector().Get(path, &resp); err != nil {
 		if err, ok := err.(cerrors.Error); ok && err.Status() == http.StatusNotFound {
-			return 0, nil
+			return 0, errors.New("last block must be set either in orders database or in override_last_block config field")
 		}
 		return 0, errors.Wrap(err, "failed to get last block from collector")
 	}

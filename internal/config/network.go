@@ -14,9 +14,12 @@ import (
 
 type Network struct {
 	*gobind.Swapica
-	ChainID        int64
-	IndexPeriod    time.Duration
-	RequestTimeout time.Duration
+	EthClient         *ethclient.Client
+	ChainID           int64
+	IndexPeriod       time.Duration
+	BlockRange        uint64
+	OverrideLastBlock *uint64
+	RequestTimeout    time.Duration
 }
 
 const defaultRequestTimeout = 10 * time.Second
@@ -25,11 +28,13 @@ const maxChainID int64 = math.MaxUint64/2 - 36
 func (c *config) Network() Network {
 	return c.networkOnce.Do(func() interface{} {
 		var cfg struct {
-			RPC            string         `fig:"rpc,required"`
-			Contract       common.Address `fig:"contract,required"`
-			ChainID        int64          `fig:"chain_id,required"`
-			IndexPeriod    time.Duration  `fig:"index_period,required"`
-			RequestTimeout time.Duration  `fig:"request_timeout"`
+			RPC               string         `fig:"rpc,required"`
+			Contract          common.Address `fig:"contract,required"`
+			ChainID           int64          `fig:"chain_id,required"`
+			IndexPeriod       time.Duration  `fig:"index_period,required"`
+			BlockRange        uint64         `fig:"block_range"`
+			OverrideLastBlock *uint64        `fig:"override_last_block"`
+			RequestTimeout    time.Duration  `fig:"request_timeout"`
 		}
 
 		err := figure.Out(&cfg).
@@ -57,10 +62,13 @@ func (c *config) Network() Network {
 		}
 
 		return Network{
-			Swapica:        s,
-			ChainID:        cfg.ChainID,
-			IndexPeriod:    cfg.IndexPeriod,
-			RequestTimeout: cfg.RequestTimeout,
+			Swapica:           s,
+			EthClient:         cli,
+			ChainID:           cfg.ChainID,
+			IndexPeriod:       cfg.IndexPeriod,
+			BlockRange:        cfg.BlockRange,
+			OverrideLastBlock: cfg.OverrideLastBlock,
+			RequestTimeout:    cfg.RequestTimeout,
 		}
 	}).(Network)
 }

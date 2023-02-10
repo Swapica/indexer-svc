@@ -10,5 +10,8 @@ network:
   rpc: "http://rpc-proxy/integrations/rpc-proxy/goerli"
   contract: "Swapica address"
   chain_id: 5
-  index_period: 10s
+  index_period: 30s # period of contract calls for fetching events
+  # optional fields
+  block_range: 3000 # max difference between start and end block on eth_getLogs call, e.g. for Fuji Ankr RPC it's 3000
+  override_last_block: "8931015" # if set, updates the last block in DB and catches up from it
   request_timeout: 3s

@@ -11,6 +11,7 @@ import (
 	"github.com/Swapica/indexer-svc/internal/gobind"
 	"github.com/Swapica/order-aggregator-svc/resources"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/ethclient"
 	jsonapi "gitlab.com/distributed_lab/json-api-connector"
 	"gitlab.com/distributed_lab/json-api-connector/cerrors"
 	"gitlab.com/distributed_lab/logan/v3"
@@ -21,6 +22,7 @@ type indexer struct {
 	log       *logan.Entry
 	swapica   *gobind.Swapica
 	collector *jsonapi.Connector
+	ethClient *ethclient.Client
 
 	chainID        int64
 	lastBlock      uint64
@@ -32,6 +34,7 @@ func newIndexer(c config.Config, lastBlock uint64) indexer {
 		log:            c.Log(),
 		swapica:        c.Network().Swapica,
 		collector:      c.Collector(),
+		ethClient:      c.Network().EthClient,
 		chainID:        c.Network().ChainID,
 		lastBlock:      lastBlock,
 		requestTimeout: c.Network().RequestTimeout,
@@ -39,9 +42,9 @@ func newIndexer(c config.Config, lastBlock uint64) indexer {
 }
 
 func (r *indexer) run(ctx context.Context) error {
-	var lbu1, lbu2, lbu3, lbu4 bool // last block updated
+	var lastBlockUpdated bool
 	defer func() {
-		if lbu1 || lbu2 || lbu3 || lbu4 {
+		if lastBlockUpdated {
 			log := r.log.WithField("last_block", r.lastBlock)
 			if err := r.saveLastBlock(ctx); err != nil {
 				log.WithError(err).Error("failed to save last block")
@@ -54,23 +57,29 @@ func (r *indexer) run(ctx context.Context) error {
 	defer cancel()
 	opts := &bind.FilterOpts{Context: childCtx, Start: r.lastBlock}
 
+	lastBlockUpdated, err := r.handleEvents(ctx, opts)
+	return errors.Wrap(err, "failed to handle events")
+}
+
+func (r *indexer) handleEvents(ctx context.Context, opts *bind.FilterOpts) (bool, error) {
+	var lbu1, lbu2, lbu3, lbu4 bool
 	lbu1, err := r.handleCreatedOrders(ctx, opts)
 	if err != nil {
-		return errors.Wrap(err, "failed to handle created orders")
+		return lbu1, errors.Wrap(err, "failed to handle created orders")
 	}
 
 	lbu2, err = r.handleCreatedMatches(ctx, opts)
 	if err != nil {
-		return errors.Wrap(err, "failed to handle created match orders")
+		return lbu1 || lbu2, errors.Wrap(err, "failed to handle created match orders")
 	}
 
 	lbu3, err = r.handleUpdatedOrders(ctx, opts)
 	if err != nil {
-		return errors.Wrap(err, "failed to handle updated orders")
+		return lbu1 || lbu2 || lbu3, errors.Wrap(err, "failed to handle updated orders")
 	}
 
 	lbu4, err = r.handleUpdatedMatches(ctx, opts)
-	return errors.Wrap(err, "failed to handle updated match orders")
+	return lbu1 || lbu2 || lbu3 || lbu4, errors.Wrap(err, "failed to handle updated match orders")
 }
 
 func (r *indexer) saveLastBlock(ctx context.Context) error {
