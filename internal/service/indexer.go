@@ -51,13 +51,13 @@ func (r *indexer) run(ctx context.Context) error {
 		return errors.Wrap(err, "failed to get the latest block from the network")
 	}
 
-	opts := &bind.FilterOpts{Start: r.lastBlock, End: &currBlock}
+	opts := &bind.FilterOpts{Start: r.lastBlock + 1, End: &currBlock}
 	r.log.Debugf("filtering events with params: fromBlock=%d, toBlock=%d", opts.Start, *opts.End)
 	if err = r.handleEvents(ctx, opts); err != nil {
 		return errors.Wrap(err, "failed to handle events")
 	}
 
-	r.lastBlock = currBlock + 1 // see catch_up.go
+	r.lastBlock = currBlock
 	r.lastBlockOutdated = true
 	return nil
 }

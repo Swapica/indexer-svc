@@ -20,6 +20,8 @@ type service struct {
 	cfg config.Config
 }
 
+const ethBlockTime = 13 * time.Second
+
 func (s *service) run() error {
 	s.log.Info("Service started")
 
@@ -38,7 +40,7 @@ func (s *service) run() error {
 
 	s.log.Infof("listening events in normal mode from the block number %d", runner.lastBlock)
 	running.WithBackOff(ctx, s.log, "indexer", runner.run,
-		s.cfg.Network().IndexPeriod, 5*time.Second, 10*time.Minute)
+		s.cfg.Network().IndexPeriod, ethBlockTime, 10*time.Minute)
 
 	return nil
 }

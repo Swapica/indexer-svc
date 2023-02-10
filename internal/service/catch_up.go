@@ -38,6 +38,7 @@ func (r *indexer) catchUp(ctx context.Context, blockRange uint64) error {
 		}
 	}
 
+	r.lastBlock = currBlock
 	r.lastBlockOutdated = true
 	return nil
 }
