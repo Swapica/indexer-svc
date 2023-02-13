@@ -83,7 +83,12 @@ func (r *indexer) run(ctx context.Context) error {
 }
 
 func (r *indexer) handleEvents(ctx context.Context, opts *bind.FilterOpts) error {
-	r.log.Debugf("filtering events with fromBlock=%d", opts.Start)
+	toBlock := "latest"
+	if opts.End != nil {
+		toBlock = strconv.FormatUint(*opts.End, 10)
+	}
+	r.log.Debugf("filtering events with fromBlock=%d and toBlock=%s", opts.Start, toBlock)
+
 	child, cancel := context.WithTimeout(ctx, r.requestTimeout)
 	defer cancel()
 	opts.Context = child

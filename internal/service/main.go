@@ -21,6 +21,7 @@ type service struct {
 }
 
 const ethBlockTime = 13 * time.Second
+const defaultLastBlock = 8483496 // Goerli's latest block of tx with no events at this moment
 
 func (s *service) run() error {
 	s.log.Info("Service started")
@@ -65,23 +66,19 @@ func (s *service) getLastBlock() (uint64, error) {
 	if last != nil {
 		return *last, nil
 	}
-
 	// No error can occur when parsing int64 + const_string
 	path, _ := url.Parse(strconv.FormatInt(s.cfg.Network().ChainID, 10) + "/block")
 
 	var resp resources.BlockResponse
 	if err := s.cfg.Collector().Get(path, &resp); err != nil {
 		if err, ok := err.(cerrors.Error); ok && err.Status() == http.StatusNotFound {
-			return 0, errors.New("last block must be set either in orders database or in override_last_block config field")
+			s.log.WithField("default_last_block", defaultLastBlock).
+				Warn("last block should be set either in orders DB or in override_last_block config field, using default")
+			return defaultLastBlock, nil
 		}
 		return 0, errors.Wrap(err, "failed to get last block from collector")
 	}
 
 	n, err := strconv.ParseUint(resp.Data.ID, 10, 64)
 	return n, errors.Wrap(err, "failed to parse received block number", map[string]interface{}{"data.id": resp.Data.ID})
-}
-
-func (s *service) getNetworkLatestBlock(ctx context.Context) (uint64, error) {
-	i := newIndexer(s.cfg, 0)
-	return i.getNetworkLatestBlock(ctx)
 }
