@@ -5,5 +5,5 @@
 package resources
 
 type UpdateOrderRelationships struct {
-	ExecutedBy *Relation `json:"executedBy,omitempty"`
+	Match *Relation `json:"match,omitempty"`
 }

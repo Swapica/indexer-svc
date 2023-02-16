@@ -5,31 +5,26 @@ import (
 	"github.com/Swapica/order-aggregator-svc/resources"
 )
 
-func NewAddOrder(o gobind.ISwapicaOrder, chainID int64) resources.OrderResponse {
+func NewAddOrder(o gobind.ISwapicaOrder, chainID int64) resources.AddOrderRequest {
 	orderId := o.OrderId.Int64()
-	return resources.OrderResponse{
-		Data: resources.Order{
+	destChain := o.DestinationChain.Int64()
+
+	return resources.AddOrderRequest{
+		Data: resources.AddOrder{
 			Key: resources.Key{
 				Type: resources.ORDER,
 			},
-			Attributes: resources.OrderAttributes{
-				Account:      o.Creator.String(),
+			Attributes: resources.AddOrderAttributes{
 				AmountToBuy:  o.AmountToBuy.String(),
 				AmountToSell: o.AmountToSell.String(),
+				Creator:      o.Creator.String(),
+				MatchSwapica: nil, // must be nil by the Swapica contract
 				OrderId:      &orderId,
-				SrcChain:     &chainID,
 				State:        o.Status.State,
 				TokenToBuy:   o.TokenToBuy.String(),
 				TokenToSell:  o.TokenToSell.String(),
-			},
-			Relationships: resources.OrderRelationships{
-				DestChain: resources.Relation{
-					Data: &resources.Key{
-						ID:   o.DestinationChain.String(),
-						Type: resources.CHAIN,
-					},
-				},
-				ExecutedBy: nil, // must be empty
+				DestChainId:  &destChain,
+				SrcChainId:   &chainID,
 			},
 		},
 	}

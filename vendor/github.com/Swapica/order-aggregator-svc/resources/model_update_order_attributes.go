@@ -6,7 +6,7 @@ package resources
 
 type UpdateOrderAttributes struct {
 	// Swapica contract address on the destination network
-	MatchSwapica *string `json:"matchSwapica,omitempty"`
+	MatchSwapica *string `json:"match_swapica,omitempty"`
 	// New order state
 	State uint8 `json:"state"`
 }
