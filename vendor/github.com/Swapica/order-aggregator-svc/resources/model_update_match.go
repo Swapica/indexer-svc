@@ -4,6 +4,8 @@
 
 package resources
 
+import "encoding/json"
+
 type UpdateMatch struct {
 	Key
 	Attributes UpdateMatchAttributes `json:"attributes"`
@@ -14,9 +16,19 @@ type UpdateMatchRequest struct {
 }
 
 type UpdateMatchListRequest struct {
-	Data     []UpdateMatch `json:"data"`
-	Included Included      `json:"included"`
-	Links    *Links        `json:"links"`
+	Data     []UpdateMatch   `json:"data"`
+	Included Included        `json:"included"`
+	Links    *Links          `json:"links"`
+	Meta     json.RawMessage `json:"meta,omitempty"`
+}
+
+func (r *UpdateMatchListRequest) PutMeta(v interface{}) (err error) {
+	r.Meta, err = json.Marshal(v)
+	return err
+}
+
+func (r *UpdateMatchListRequest) GetMeta(out interface{}) error {
+	return json.Unmarshal(r.Meta, out)
 }
 
 // MustUpdateMatch - returns UpdateMatch from include collection.

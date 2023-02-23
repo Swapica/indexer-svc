@@ -6,9 +6,6 @@ import (
 )
 
 func NewAddOrder(o gobind.ISwapicaOrder, chainID int64) resources.AddOrderRequest {
-	orderId := o.OrderId.Int64()
-	destChain := o.DestinationChain.Int64()
-
 	return resources.AddOrderRequest{
 		Data: resources.AddOrder{
 			Key: resources.Key{
@@ -19,12 +16,12 @@ func NewAddOrder(o gobind.ISwapicaOrder, chainID int64) resources.AddOrderReques
 				AmountToSell: o.AmountToSell.String(),
 				Creator:      o.Creator.String(),
 				MatchSwapica: nil, // must be nil by the Swapica contract
-				OrderId:      &orderId,
+				OrderId:      o.OrderId.Int64(),
 				State:        o.Status.State,
 				TokenToBuy:   o.TokenToBuy.String(),
 				TokenToSell:  o.TokenToSell.String(),
-				DestChainId:  &destChain,
-				SrcChainId:   &chainID,
+				DestChainId:  o.DestinationChain.Int64(),
+				SrcChainId:   chainID,
 			},
 		},
 	}

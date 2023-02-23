@@ -4,6 +4,8 @@
 
 package resources
 
+import "encoding/json"
+
 type Match struct {
 	Key
 	Attributes    MatchAttributes    `json:"attributes"`
@@ -15,9 +17,19 @@ type MatchResponse struct {
 }
 
 type MatchListResponse struct {
-	Data     []Match  `json:"data"`
-	Included Included `json:"included"`
-	Links    *Links   `json:"links"`
+	Data     []Match         `json:"data"`
+	Included Included        `json:"included"`
+	Links    *Links          `json:"links"`
+	Meta     json.RawMessage `json:"meta,omitempty"`
+}
+
+func (r *MatchListResponse) PutMeta(v interface{}) (err error) {
+	r.Meta, err = json.Marshal(v)
+	return err
+}
+
+func (r *MatchListResponse) GetMeta(out interface{}) error {
+	return json.Unmarshal(r.Meta, out)
 }
 
 // MustMatch - returns Match from include collection.

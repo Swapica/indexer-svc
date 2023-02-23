@@ -4,6 +4,8 @@
 
 package resources
 
+import "encoding/json"
+
 type Order struct {
 	Key
 	Attributes    OrderAttributes    `json:"attributes"`
@@ -15,9 +17,19 @@ type OrderResponse struct {
 }
 
 type OrderListResponse struct {
-	Data     []Order  `json:"data"`
-	Included Included `json:"included"`
-	Links    *Links   `json:"links"`
+	Data     []Order         `json:"data"`
+	Included Included        `json:"included"`
+	Links    *Links          `json:"links"`
+	Meta     json.RawMessage `json:"meta,omitempty"`
+}
+
+func (r *OrderListResponse) PutMeta(v interface{}) (err error) {
+	r.Meta, err = json.Marshal(v)
+	return err
+}
+
+func (r *OrderListResponse) GetMeta(out interface{}) error {
+	return json.Unmarshal(r.Meta, out)
 }
 
 // MustOrder - returns Order from include collection.

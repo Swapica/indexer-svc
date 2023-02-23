@@ -9,5 +9,5 @@ type EvmChainParams struct {
 	ExplorerUrl    *string `json:"explorer_url,omitempty"`
 	NativeDecimals uint8   `json:"native_decimals"`
 	NativeSymbol   string  `json:"native_symbol"`
-	RpcUrl         string  `json:"rpc_url"`
+	Rpc            *string `json:"rpc,omitempty"`
 }

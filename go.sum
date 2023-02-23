@@ -47,8 +47,8 @@ github.com/Masterminds/squirrel v1.4.0/go.mod h1:yaPeOnPG5ZRwL9oKdTsO/prlkPbXWZl
 github.com/Shopify/goreferrer v0.0.0-20181106222321-ec9c9a553398/go.mod h1:a1uqRtAwp2Xwc6WNPJEufxJ7fx3npB4UV/JOLmbu5I0=
 github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 h1:fLjPD/aNc3UIOA6tDi6QXUemppXK3P9BI7mr2hd6gx8=
 github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6/go.mod h1:3eOhrUMpNV+6aFIbp5/iudMxNCF27Vw2OZgy4xEx0Fg=
-github.com/Swapica/order-aggregator-svc v0.0.0-20230216133821-90bc2f97f60d h1:JPgg2UCQp3NCheE7NXGFcxtPEgO3HzgutJIM/p/1pw0=
-github.com/Swapica/order-aggregator-svc v0.0.0-20230216133821-90bc2f97f60d/go.mod h1:DpHbDXMoAAygZD0L91fCHN7DtFKjz9qcUZlQL09VkjU=
+github.com/Swapica/order-aggregator-svc v0.0.0-20230223111550-c21489f844fa h1:knM8F0PQ2wcdSog3yQjqDr29qkdVdqWjQh30g2otpW4=
+github.com/Swapica/order-aggregator-svc v0.0.0-20230223111550-c21489f844fa/go.mod h1:DpHbDXMoAAygZD0L91fCHN7DtFKjz9qcUZlQL09VkjU=
 github.com/VictoriaMetrics/fastcache v1.6.0 h1:C/3Oi3EiBCqufydp1neRZkqcwmEiuRT9c3fqvvgKm5o=
 github.com/ajg/form v1.5.1/go.mod h1:uL1WgH+h2mgNtvBq0339dVnzXdBETtL2LeUXaIv25UY=
 github.com/alecthomas/kingpin v2.2.6+incompatible h1:5svnBTFgJjZvGKyYBtMB0+m5wvrbUHiqye8wRJMlnYI=

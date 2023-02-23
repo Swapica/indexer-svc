@@ -15,15 +15,10 @@ func NewUpdateOrder(id *big.Int, status gobind.ISwapicaOrderStatus) resources.Up
 		matchSwapica = &str
 	}
 
-	var rel *resources.UpdateOrderRelationships
-	if m := status.MatchId; m != nil && m.Int64() != 0 {
-		rel = &resources.UpdateOrderRelationships{
-			Match: &resources.Relation{
-				Data: &resources.Key{
-					ID:   m.String(),
-					Type: resources.MATCH_ORDER,
-				},
-			}}
+	var matchId *int64
+	if mid := status.MatchId; mid != nil && mid.Int64() != 0 {
+		i := mid.Int64()
+		matchId = &i
 	}
 
 	return resources.UpdateOrderRequest{
@@ -33,10 +28,10 @@ func NewUpdateOrder(id *big.Int, status gobind.ISwapicaOrderStatus) resources.Up
 				Type: resources.ORDER,
 			},
 			Attributes: resources.UpdateOrderAttributes{
+				MatchId:      matchId,
 				MatchSwapica: matchSwapica,
 				State:        status.State,
 			},
-			Relationships: rel,
 		},
 	}
 }

@@ -4,6 +4,8 @@
 
 package resources
 
+import "encoding/json"
+
 type Chain struct {
 	Key
 	Attributes ChainAttributes `json:"attributes"`
@@ -14,9 +16,19 @@ type ChainResponse struct {
 }
 
 type ChainListResponse struct {
-	Data     []Chain  `json:"data"`
-	Included Included `json:"included"`
-	Links    *Links   `json:"links"`
+	Data     []Chain         `json:"data"`
+	Included Included        `json:"included"`
+	Links    *Links          `json:"links"`
+	Meta     json.RawMessage `json:"meta,omitempty"`
+}
+
+func (r *ChainListResponse) PutMeta(v interface{}) (err error) {
+	r.Meta, err = json.Marshal(v)
+	return err
+}
+
+func (r *ChainListResponse) GetMeta(out interface{}) error {
+	return json.Unmarshal(r.Meta, out)
 }
 
 // MustChain - returns Chain from include collection.

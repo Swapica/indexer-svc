@@ -4,6 +4,8 @@
 
 package resources
 
+import "encoding/json"
+
 type Block struct {
 	Key
 	// Only for generation of Go API resources
@@ -15,9 +17,19 @@ type BlockResponse struct {
 }
 
 type BlockListResponse struct {
-	Data     []Block  `json:"data"`
-	Included Included `json:"included"`
-	Links    *Links   `json:"links"`
+	Data     []Block         `json:"data"`
+	Included Included        `json:"included"`
+	Links    *Links          `json:"links"`
+	Meta     json.RawMessage `json:"meta,omitempty"`
+}
+
+func (r *BlockListResponse) PutMeta(v interface{}) (err error) {
+	r.Meta, err = json.Marshal(v)
+	return err
+}
+
+func (r *BlockListResponse) GetMeta(out interface{}) error {
+	return json.Unmarshal(r.Meta, out)
 }
 
 // MustBlock - returns Block from include collection.
