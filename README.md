@@ -1,4 +1,4 @@
-# order-indexer-svc
+# indexer-svc
 
 ## Description
 
@@ -7,8 +7,8 @@ Save orders from a single EVM network to the database for better performance on 
 ## Install
 
   ```
-  git clone github.com/Swapica/order-indexer-svc
-  cd order-indexer-svc
+  git clone github.com/Swapica/indexer-svc
+  cd indexer-svc
   go build main.go
   export KV_VIPER_FILE=./config.yaml
   ./main migrate up
@@ -38,8 +38,8 @@ Make sure that docker installed.
 
 
   ```
-  docker build -t github.com/Swapica/order-indexer-svc .
-  docker run -e KV_VIPER_FILE=/config.yaml github.com/Swapica/order-indexer-svc
+  docker build -t github.com/Swapica/indexer-svc .
+  docker run -e KV_VIPER_FILE=/config.yaml github.com/Swapica/indexer-svc
   ```
 
 ## Running from Source
