@@ -19,12 +19,14 @@ type AddOrderAttributes struct {
 	OrderId int64 `json:"order_id"`
 	// Order state
 	State uint8 `json:"state"`
-	// Contract address of the token to buy
-	TokenToBuy string `json:"token_to_buy"`
-	// Contract address of the token to sell
-	TokenToSell string `json:"token_to_sell"`
+	// Relayer execute order
+	UseRelayer bool `json:"use_relayer"`
 	// Source blockchain of the match order which is intended to execute the order
 	DestChainId int64 `json:"dest_chain_id"`
 	// Source blockchain where the order appeared
 	SrcChainId int64 `json:"src_chain_id"`
+	// Contract address of the token to buy
+	TokenToBuy string `json:"token_to_buy"`
+	// Contract address of the token to sell
+	TokenToSell string `json:"token_to_sell"`
 }

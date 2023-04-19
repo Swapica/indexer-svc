@@ -15,10 +15,12 @@ type AddMatchAttributes struct {
 	OriginOrderId int64 `json:"origin_order_id"`
 	// Match order state
 	State uint8 `json:"state"`
-	// Contract address of the token to sell
-	TokenToSell string `json:"token_to_sell"`
+	// Relayer execute match order
+	UseRelayer bool `json:"use_relayer"`
 	// Source blockchain of the order to match
 	OriginChainId int64 `json:"origin_chain_id"`
 	// Source blockchain where the match order appeared
 	SrcChainId int64 `json:"src_chain_id"`
+	// Contract address of the token to sell
+	TokenToSell string `json:"token_to_sell"`
 }

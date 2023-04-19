@@ -5,7 +5,7 @@ import (
 	"github.com/Swapica/order-aggregator-svc/resources"
 )
 
-func NewAddMatch(m gobind.ISwapicaMatch, chainID int64) resources.AddMatchRequest {
+func NewAddMatch(m gobind.ISwapicaMatch, chainID int64, useRelayer bool) resources.AddMatchRequest {
 	return resources.AddMatchRequest{
 		Data: resources.AddMatch{
 			Key: resources.Key{
@@ -13,6 +13,7 @@ func NewAddMatch(m gobind.ISwapicaMatch, chainID int64) resources.AddMatchReques
 			},
 			Attributes: resources.AddMatchAttributes{
 				AmountToSell:  m.AmountToSell.String(),
+				UseRelayer:    useRelayer,
 				Creator:       m.Creator.String(),
 				MatchId:       m.MatchId.Int64(),
 				State:         m.State,

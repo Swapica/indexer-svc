@@ -12,4 +12,5 @@ const (
 	CHAIN       ResourceType = "chain"
 	MATCH_ORDER ResourceType = "match_order"
 	ORDER       ResourceType = "order"
+	TOKEN       ResourceType = "token"
 )

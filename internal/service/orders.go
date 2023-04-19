@@ -18,7 +18,7 @@ func (r *indexer) handleCreatedOrders(ctx context.Context, opts *bind.FilterOpts
 		return errors.Wrap(err, "failed to filter OrderCreated events")
 	}
 	for it.Next() {
-		if err = r.addOrder(ctx, it.Event.Order); err != nil {
+		if err = r.addOrder(ctx, it.Event.Order, it.Event.UseRelayer); err != nil {
 			return errors.Wrap(err, "failed to index order")
 		}
 
@@ -51,10 +51,10 @@ func (r *indexer) handleUpdatedOrders(ctx context.Context, opts *bind.FilterOpts
 	return errors.Wrap(it.Error(), "error occurred while iterating over OrderUpdated events")
 }
 
-func (r *indexer) addOrder(ctx context.Context, o gobind.ISwapicaOrder) error {
+func (r *indexer) addOrder(ctx context.Context, o gobind.ISwapicaOrder, useRelayer bool) error {
 	log := r.log.WithField("order_id", o.OrderId.String())
 	log.Debug("adding new order")
-	body := requests.NewAddOrder(o, r.chainID)
+	body := requests.NewAddOrder(o, r.chainID, useRelayer)
 	u, _ := url.Parse("/orders")
 
 	err := r.collector.PostJSON(u, body, ctx, nil)

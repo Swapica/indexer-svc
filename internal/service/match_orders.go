@@ -18,7 +18,7 @@ func (r *indexer) handleCreatedMatches(ctx context.Context, opts *bind.FilterOpt
 		return errors.Wrap(err, "failed to filter MatchCreated events")
 	}
 	for it.Next() {
-		if err = r.addMatch(ctx, it.Event.Match); err != nil {
+		if err = r.addMatch(ctx, it.Event.Match, it.Event.UseRelayer); err != nil {
 			return errors.Wrap(err, "failed to add match order")
 		}
 
@@ -51,10 +51,10 @@ func (r *indexer) handleUpdatedMatches(ctx context.Context, opts *bind.FilterOpt
 	return errors.Wrap(it.Error(), "error occurred while iterating over MatchUpdated events")
 }
 
-func (r *indexer) addMatch(ctx context.Context, mo gobind.ISwapicaMatch) error {
+func (r *indexer) addMatch(ctx context.Context, mo gobind.ISwapicaMatch, useRelayer bool) error {
 	log := r.log.WithField("match_id", mo.MatchId.String())
 	log.Debug("adding new match order")
-	body := requests.NewAddMatch(mo, r.chainID)
+	body := requests.NewAddMatch(mo, r.chainID, useRelayer)
 	u, _ := url.Parse("/match_orders")
 
 	err := r.collector.PostJSON(u, body, ctx, nil)

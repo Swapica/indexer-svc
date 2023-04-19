@@ -15,6 +15,6 @@ type MatchAttributes struct {
 	OriginOrderId int64 `json:"origin_order_id"`
 	// Match order state
 	State uint8 `json:"state"`
-	// Contract address of the token to sell
-	TokenToSell string `json:"token_to_sell"`
+	// Relayer execute match order
+	UseRelayer bool `json:"use_relayer"`
 }
