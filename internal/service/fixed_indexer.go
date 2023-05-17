@@ -301,7 +301,7 @@ func (r *indexerFixed) updateOrder(ctx context.Context, id *big.Int, status gobi
 }
 
 func (r *indexerFixed) orderExists(id int64) (bool, error) {
-	u, err := url.Parse("/get_order/" + strconv.FormatInt(id, 10))
+	u, err := url.Parse("/orders/" + strconv.FormatInt(id, 10))
 	if err != nil {
 		return false, errors.Wrap(err, "failed to parse url")
 	}
@@ -359,7 +359,7 @@ func (r *indexerFixed) updateMatch(ctx context.Context, id *big.Int, state uint8
 }
 
 func (r *indexerFixed) matchExists(id int64) (bool, error) {
-	u, err := url.Parse("/get_match/" + strconv.FormatInt(id, 10))
+	u, err := url.Parse("/match_orders/" + strconv.FormatInt(id, 10))
 	if err != nil {
 		return false, errors.Wrap(err, "failed to parse url")
 	}
