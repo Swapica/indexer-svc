@@ -13,6 +13,7 @@ import (
 	"github.com/Swapica/indexer-svc/internal/service/requests"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	jsonapi "gitlab.com/distributed_lab/json-api-connector"
@@ -32,9 +33,12 @@ type indexerFixed struct {
 	lastBlockOutdated bool
 	requestTimeout    time.Duration
 
-	handlers   map[string]Handler
-	swapicaAbi abi.ABI
+	handlers        map[string]Handler
+	swapicaAbi      abi.ABI
+	contractAddress common.Address
 }
+
+type Handler func(ctx context.Context, eventName string, log *types.Log) error
 
 func newIndexerFixed(c config.Config, lastBlock uint64) indexerFixed {
 	swapicaAbi, err := abi.JSON(strings.NewReader(gobind.SwapicaMetaData.ABI))
@@ -43,15 +47,16 @@ func newIndexerFixed(c config.Config, lastBlock uint64) indexerFixed {
 	}
 
 	indexerInstance := indexerFixed{
-		log:            c.Log(),
-		swapica:        c.Network().Swapica,
-		collector:      c.Collector(),
-		ethClient:      c.Network().EthClient,
-		chainID:        c.Network().ChainID,
-		blockRange:     c.Network().BlockRange,
-		lastBlock:      lastBlock,
-		requestTimeout: c.Network().RequestTimeout,
-		swapicaAbi:     swapicaAbi,
+		log:             c.Log(),
+		swapica:         c.Network().Swapica,
+		collector:       c.Collector(),
+		ethClient:       c.Network().EthClient,
+		chainID:         c.Network().ChainID,
+		blockRange:      c.Network().BlockRange,
+		lastBlock:       lastBlock,
+		requestTimeout:  c.Network().RequestTimeout,
+		swapicaAbi:      swapicaAbi,
+		contractAddress: c.Network().ContractAddress,
 	}
 
 	indexerInstance.handlers = map[string]Handler{
@@ -64,7 +69,29 @@ func newIndexerFixed(c config.Config, lastBlock uint64) indexerFixed {
 	return indexerInstance
 }
 
-type Handler func(ctx context.Context, eventName string, log *types.Log) error
+func (r *indexerFixed) runFixed(ctx context.Context) error {
+	currentBlock, err := r.ethClient.BlockNumber(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to get last block number")
+	}
+
+	if err := r.handleUnprocessedEvents(ctx, currentBlock); err != nil {
+		return errors.Wrap(err, "failed to handle unprocessed events")
+	}
+
+	newEvents := make(chan types.Log, 1024)
+	sub, err := r.ethClient.SubscribeFilterLogs(ctx, r.filters(), newEvents)
+	if err != nil {
+		return errors.Wrap(err, "failed to subscribe to logs")
+	}
+	defer sub.Unsubscribe()
+
+	if err := r.waitForEvents(ctx, sub, newEvents); err != nil {
+		return errors.Wrap(err, "failed to wait for unprocessed events")
+	}
+
+	return nil
+}
 
 func (r *indexerFixed) handleOrderCreated(ctx context.Context, eventName string, log *types.Log) error {
 	var event gobind.SwapicaOrderCreated
@@ -78,12 +105,6 @@ func (r *indexerFixed) handleOrderCreated(ctx context.Context, eventName string,
 
 	if err = r.addOrder(ctx, event.Order, event.UseRelayer); err != nil {
 		return errors.Wrap(err, "failed to index order")
-	}
-
-	// FIXME should we use this?
-	if b := event.Raw.BlockNumber + 1; b > r.lastBlock {
-		r.lastBlock = b
-		r.lastBlockOutdated = true
 	}
 
 	return nil
@@ -103,12 +124,6 @@ func (r *indexerFixed) handleOrderUpdated(ctx context.Context, eventName string,
 		return errors.Wrap(err, "failed to index order")
 	}
 
-	// FIXME should we use this?
-	if b := event.Raw.BlockNumber + 1; b > r.lastBlock {
-		r.lastBlock = b
-		r.lastBlockOutdated = true
-	}
-
 	return nil
 }
 
@@ -124,12 +139,6 @@ func (r *indexerFixed) handleMatchCreated(ctx context.Context, eventName string,
 
 	if err = r.addMatch(ctx, event.Match, event.UseRelayer); err != nil {
 		return errors.Wrap(err, "failed to add match order")
-	}
-
-	// FIXME should we use this?
-	if b := event.Raw.BlockNumber + 1; b > r.lastBlock {
-		r.lastBlock = b
-		r.lastBlockOutdated = true
 	}
 
 	return nil
@@ -149,21 +158,48 @@ func (r *indexerFixed) handleMatchUpdated(ctx context.Context, eventName string,
 		return errors.Wrap(err, "failed to update match order")
 	}
 
-	// FIXME should we use this?
-	if b := event.Raw.BlockNumber + 1; b > r.lastBlock {
-		r.lastBlock = b
-		r.lastBlockOutdated = true
+	return nil
+}
+
+func (r *indexerFixed) handleUnprocessedEvents(
+	ctx context.Context, currentBlock uint64,
+) error {
+	filters := r.filters()
+
+	filters.FromBlock = new(big.Int).SetUint64(r.lastBlock)
+	filters.ToBlock = new(big.Int).SetUint64(currentBlock + 1)
+
+	logs, err := r.ethClient.FilterLogs(ctx, filters)
+	if err != nil {
+		return errors.Wrap(err, "failed to get filter logs")
+	}
+
+	for _, log := range logs {
+		if err := r.handleEvent(ctx, log); err != nil {
+			return errors.Wrap(err, "failed to handle event")
+		}
 	}
 
 	return nil
 }
 
-func (r *indexerFixed) runFixed(ctx context.Context) error {
-	// TODO handle unprocessed
+func (r *indexerFixed) filters() ethereum.FilterQuery {
+	topics := make([]common.Hash, 0, len(r.handlers))
+	for eventName := range r.handlers {
+		event := r.swapicaAbi.Events[eventName]
 
-	// TODO wait for events
+		topics = append(topics, event.ID)
+	}
 
-	return nil
+	filterQuery := ethereum.FilterQuery{
+		Addresses: []common.Address{
+			r.contractAddress,
+		},
+		Topics: [][]common.Hash{
+			topics,
+		},
+	}
+	return filterQuery
 }
 
 func (r *indexerFixed) waitForEvents(
@@ -193,18 +229,17 @@ func (r *indexerFixed) handleEvent(ctx context.Context, log types.Log) error {
 		})
 	}
 
-	// TODO
-	//processed, err := r.checkLogProcessed(&log)
-	//if err != nil {
-	//	return errors.Wrap(err, "failed to check if log is processed")
-	//}
-	//if processed { // just skip
-	//	r.log.WithFields(logan.F{
-	//		"event":   event.Name,
-	//		"tx_hash": log.TxHash.Hex(),
-	//	}).Debug("got already handled event")
-	//	return nil
-	//}
+	processed, err := r.checkLogProcessed(&log)
+	if err != nil {
+		return errors.Wrap(err, "failed to check if log is processed")
+	}
+	if processed {
+		r.log.WithFields(logan.F{
+			"event":   event.Name,
+			"tx_hash": log.TxHash.Hex(),
+		}).Debug("got already handled event")
+		return nil
+	}
 
 	handler, ok := r.handlers[event.Name]
 	if !ok {
@@ -219,6 +254,11 @@ func (r *indexerFixed) handleEvent(ctx context.Context, log types.Log) error {
 		"topic":      topic.Hex(),
 		"event_name": event.Name,
 	})
+}
+
+func (r *indexerFixed) checkLogProcessed(log *types.Log) (bool, error) {
+	// TODO get log from the database
+	return false, nil
 }
 
 func (r *indexerFixed) addOrder(ctx context.Context, o gobind.ISwapicaOrder, useRelayer bool) error {

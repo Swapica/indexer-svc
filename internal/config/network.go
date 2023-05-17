@@ -14,6 +14,7 @@ import (
 
 type Network struct {
 	*gobind.Swapica
+	ContractAddress   common.Address
 	EthClient         *ethclient.Client
 	ChainID           int64
 	IndexPeriod       time.Duration
@@ -63,6 +64,7 @@ func (c *config) Network() Network {
 
 		return Network{
 			Swapica:           s,
+			ContractAddress:   cfg.Contract,
 			EthClient:         cli,
 			ChainID:           cfg.ChainID,
 			IndexPeriod:       cfg.IndexPeriod,
