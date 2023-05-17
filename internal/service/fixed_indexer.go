@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"math/big"
 	"net/url"
 	"strconv"
@@ -103,6 +104,14 @@ func (r *indexerFixed) handleOrderCreated(ctx context.Context, eventName string,
 		})
 	}
 
+	exists, err := r.orderExists(event.Order.OrderId.Int64())
+	if err != nil {
+		return errors.Wrap(err, "failed to check if order exists")
+	}
+	if exists {
+		return nil
+	}
+
 	if err = r.addOrder(ctx, event.Order, event.UseRelayer); err != nil {
 		return errors.Wrap(err, "failed to index order")
 	}
@@ -118,6 +127,14 @@ func (r *indexerFixed) handleOrderUpdated(ctx context.Context, eventName string,
 		return errors.Wrap(err, "failed to unpack event", logan.F{
 			"event": eventName,
 		})
+	}
+
+	exists, err := r.orderExists(event.OrderId.Int64())
+	if err != nil {
+		return errors.Wrap(err, "failed to check if order exists")
+	}
+	if exists {
+		return nil
 	}
 
 	if err = r.updateOrder(ctx, event.OrderId, event.Status); err != nil {
@@ -137,6 +154,14 @@ func (r *indexerFixed) handleMatchCreated(ctx context.Context, eventName string,
 		})
 	}
 
+	exists, err := r.matchExists(event.Match.MatchId.Int64())
+	if err != nil {
+		return errors.Wrap(err, "failed to check if match exists")
+	}
+	if exists {
+		return nil
+	}
+
 	if err = r.addMatch(ctx, event.Match, event.UseRelayer); err != nil {
 		return errors.Wrap(err, "failed to add match order")
 	}
@@ -152,6 +177,14 @@ func (r *indexerFixed) handleMatchUpdated(ctx context.Context, eventName string,
 		return errors.Wrap(err, "failed to unpack event", logan.F{
 			"event": eventName,
 		})
+	}
+
+	exists, err := r.matchExists(event.MatchId.Int64())
+	if err != nil {
+		return errors.Wrap(err, "failed to check if match exists")
+	}
+	if exists {
+		return nil
 	}
 
 	if err = r.updateMatch(ctx, event.MatchId, event.Status); err != nil {
@@ -229,18 +262,6 @@ func (r *indexerFixed) handleEvent(ctx context.Context, log types.Log) error {
 		})
 	}
 
-	processed, err := r.checkLogProcessed(&log)
-	if err != nil {
-		return errors.Wrap(err, "failed to check if log is processed")
-	}
-	if processed {
-		r.log.WithFields(logan.F{
-			"event":   event.Name,
-			"tx_hash": log.TxHash.Hex(),
-		}).Debug("got already handled event")
-		return nil
-	}
-
 	handler, ok := r.handlers[event.Name]
 	if !ok {
 		return errors.From(errors.New("no handler for such event name"),
@@ -254,11 +275,6 @@ func (r *indexerFixed) handleEvent(ctx context.Context, log types.Log) error {
 		"topic":      topic.Hex(),
 		"event_name": event.Name,
 	})
-}
-
-func (r *indexerFixed) checkLogProcessed(log *types.Log) (bool, error) {
-	// TODO get log from the database
-	return false, nil
 }
 
 func (r *indexerFixed) addOrder(ctx context.Context, o gobind.ISwapicaOrder, useRelayer bool) error {
@@ -284,6 +300,41 @@ func (r *indexerFixed) updateOrder(ctx context.Context, id *big.Int, status gobi
 	return errors.Wrap(err, "failed to update order in collector service")
 }
 
+func (r *indexerFixed) orderExists(id int64) (bool, error) {
+	u, err := url.Parse("/get_order/" + strconv.FormatInt(id, 10))
+	if err != nil {
+		return false, errors.Wrap(err, "failed to parse url")
+	}
+
+	var order Order
+
+	if err := r.collector.Get(u, &order); err != nil {
+		return false, errors.Wrap(err, "failed to get match")
+	}
+
+	return id == order.OrderID, nil
+}
+
+type Order struct {
+	// ID surrogate key is strongly preferred against PRIMARY KEY (OrderID, SrcChain)
+	ID         int64  `structs:"-" db:"id"`
+	OrderID    int64  `structs:"order_id" db:"order_id"`
+	SrcChain   int64  `structs:"src_chain" db:"src_chain"`
+	Creator    string `structs:"creator" db:"creator"`
+	SellToken  int64  `structs:"sell_token" db:"sell_token"`
+	BuyToken   int64  `structs:"buy_token" db:"buy_token"`
+	SellAmount string `structs:"sell_amount" db:"sell_amount"`
+	BuyAmount  string `structs:"buy_amount" db:"buy_amount"`
+	DestChain  int64  `structs:"dest_chain" db:"dest_chain"`
+	State      uint8  `structs:"state" db:"state"`
+	UseRelayer bool   `structs:"use_relayer" db:"use_relayer"`
+
+	// ExecutedByMatch foreign key for match_orders(ID)
+	ExecutedByMatch sql.NullInt64  `structs:"executed_by_match,omitempty,omitnested" db:"executed_by_match"`
+	MatchID         sql.NullInt64  `structs:"match_id,omitempty,omitnested" db:"match_id"`
+	MatchSwapica    sql.NullString `structs:"match_swapica,omitempty,omitnested" db:"match_swapica"`
+}
+
 func (r *indexerFixed) addMatch(ctx context.Context, mo gobind.ISwapicaMatch, useRelayer bool) error {
 	log := r.log.WithField("match_id", mo.MatchId.String())
 	log.Debug("adding new match order")
@@ -305,4 +356,35 @@ func (r *indexerFixed) updateMatch(ctx context.Context, id *big.Int, state uint8
 	u, _ := url.Parse(strconv.FormatInt(r.chainID, 10) + "/match_orders")
 	err := r.collector.PatchJSON(u, body, ctx, nil)
 	return errors.Wrap(err, "failed to update match order in collector service")
+}
+
+func (r *indexerFixed) matchExists(id int64) (bool, error) {
+	u, err := url.Parse("/get_match/" + strconv.FormatInt(id, 10))
+	if err != nil {
+		return false, errors.Wrap(err, "failed to parse url")
+	}
+
+	var match Match
+
+	if err := r.collector.Get(u, &match); err != nil {
+		return false, errors.Wrap(err, "failed to get match")
+	}
+
+	return id == match.MatchID, nil
+}
+
+type Match struct {
+	// ID surrogate key is strongly preferred against PRIMARY KEY (MatchID, SrcChain)
+	ID       int64 `structs:"-" db:"id"`
+	MatchID  int64 `structs:"match_id" db:"match_id"`
+	SrcChain int64 `structs:"src_chain" db:"src_chain"`
+	// OriginOrder foreign key for orders(ID)
+	OriginOrder int64  `structs:"origin_order" db:"origin_order"`
+	OrderID     int64  `structs:"order_id" db:"order_id"`
+	OrderChain  int64  `structs:"order_chain" db:"order_chain"`
+	Creator     string `structs:"creator" db:"creator"`
+	SellToken   int64  `structs:"sell_token" db:"sell_token"`
+	SellAmount  string `structs:"sell_amount" db:"sell_amount"`
+	State       uint8  `structs:"state" db:"state"`
+	UseRelayer  bool   `structs:"use_relayer" db:"use_relayer"`
 }
