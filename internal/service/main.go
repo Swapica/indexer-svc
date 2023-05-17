@@ -31,20 +31,10 @@ func (s *service) run() error {
 		return errors.Wrap(err, "failed to get last block")
 	}
 
-	ctx := context.Background()
-	runner := newIndexer(s.cfg, last)
-	period := s.cfg.Network().IndexPeriod
-
-	latest, err := runner.getNetworkLatestBlock(ctx)
-	if err != nil {
-		return errors.Wrap(err, "failed to get block for initial catch-up")
-	}
-	if err = runner.catchUp(ctx, latest); err != nil {
-		return errors.Wrap(err, "failed to perform network initial catch-up")
-	}
-
-	time.Sleep(period) // prevent log about short period
-	running.WithBackOff(ctx, s.log, "indexer", runner.run, period, ethBlockTime, 10*time.Minute)
+	running.WithBackOff(
+		context.Background(), s.log, "indexer",
+		newIndexer(s.cfg, last).run,
+		s.cfg.Network().IndexPeriod, ethBlockTime, 10*time.Minute)
 	return nil
 }
 
