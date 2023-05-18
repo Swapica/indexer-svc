@@ -19,6 +19,7 @@ type Network struct {
 	WsClient          *ethclient.Client
 	ChainID           int64
 	IndexPeriod       time.Duration
+	BlockRange        uint64
 	OverrideLastBlock *uint64
 	RequestTimeout    time.Duration
 }
@@ -34,6 +35,7 @@ func (c *config) Network() Network {
 			Contract          common.Address `fig:"contract,required"`
 			ChainID           int64          `fig:"chain_id,required"`
 			IndexPeriod       time.Duration  `fig:"index_period,required"`
+			BlockRange        uint64         `fig:"block_range"`
 			OverrideLastBlock *uint64        `fig:"override_last_block"`
 			RequestTimeout    time.Duration  `fig:"request_timeout"`
 		}
@@ -73,6 +75,7 @@ func (c *config) Network() Network {
 			WsClient:          wsCli,
 			ChainID:           cfg.ChainID,
 			IndexPeriod:       cfg.IndexPeriod,
+			BlockRange:        cfg.BlockRange,
 			OverrideLastBlock: cfg.OverrideLastBlock,
 			RequestTimeout:    cfg.RequestTimeout,
 		}
