@@ -69,7 +69,7 @@ func newIndexer(c config.Config, lastBlock uint64) indexer {
 }
 
 func (r *indexer) run(ctx context.Context) error {
-	currentBlock, err := r.ethClient.BlockNumber(ctx)
+	lastChainBlock, err := r.ethClient.BlockNumber(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to get last block number")
 	}
@@ -81,7 +81,7 @@ func (r *indexer) run(ctx context.Context) error {
 	}
 	defer sub.Unsubscribe()
 
-	if err := r.handleUnprocessedEvents(ctx, currentBlock); err != nil {
+	if err := r.handleUnprocessedEvents(ctx, lastChainBlock); err != nil {
 		return errors.Wrap(err, "failed to handle unprocessed events")
 	}
 
@@ -93,12 +93,36 @@ func (r *indexer) run(ctx context.Context) error {
 }
 
 func (r *indexer) handleUnprocessedEvents(
-	ctx context.Context, currentBlock uint64,
+	ctx context.Context, lastChainBlock uint64,
 ) error {
 	filters := r.filters()
 
+	if r.blockRange != 0 {
+		for start := r.lastBlock + 1; start <= lastChainBlock; start += r.blockRange + 1 {
+			end := start + r.blockRange
+			if end > lastChainBlock {
+				end = lastChainBlock
+			}
+
+			filters.FromBlock = new(big.Int).SetUint64(start)
+			filters.ToBlock = new(big.Int).SetUint64(end)
+
+			logs, err := r.ethClient.FilterLogs(ctx, filters)
+			if err != nil {
+				return errors.Wrap(err, "failed to get filter logs")
+			}
+
+			for _, log := range logs {
+				if err := r.handleEvent(ctx, log); err != nil {
+					return errors.Wrap(err, "failed to handle event")
+				}
+			}
+		}
+		return nil
+	}
+
 	filters.FromBlock = new(big.Int).SetUint64(r.lastBlock)
-	filters.ToBlock = new(big.Int).SetUint64(currentBlock + 1)
+	filters.ToBlock = new(big.Int).SetUint64(lastChainBlock + 1)
 
 	logs, err := r.ethClient.FilterLogs(ctx, filters)
 	if err != nil {
