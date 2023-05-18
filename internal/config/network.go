@@ -16,6 +16,7 @@ type Network struct {
 	*gobind.Swapica
 	ContractAddress   common.Address
 	EthClient         *ethclient.Client
+	WsClient          *ethclient.Client
 	ChainID           int64
 	IndexPeriod       time.Duration
 	BlockRange        uint64
@@ -30,6 +31,7 @@ func (c *config) Network() Network {
 	return c.networkOnce.Do(func() interface{} {
 		var cfg struct {
 			RPC               string         `fig:"rpc,required"`
+			WS                string         `fig:"ws,required"`
 			Contract          common.Address `fig:"contract,required"`
 			ChainID           int64          `fig:"chain_id,required"`
 			IndexPeriod       time.Duration  `fig:"index_period,required"`
@@ -53,6 +55,10 @@ func (c *config) Network() Network {
 		if err != nil {
 			panic(errors.Wrap(err, "failed to connect to RPC provider"))
 		}
+		wsCli, err := ethclient.Dial(cfg.WS)
+		if err != nil {
+			panic(errors.Wrap(err, "failed to connect to RPC provider"))
+		}
 		s, err := gobind.NewSwapica(cfg.Contract, cli)
 		if err != nil {
 			panic(errors.Wrap(err, "failed to create contract caller"))
@@ -66,6 +72,7 @@ func (c *config) Network() Network {
 			Swapica:           s,
 			ContractAddress:   cfg.Contract,
 			EthClient:         cli,
+			WsClient:          wsCli,
 			ChainID:           cfg.ChainID,
 			IndexPeriod:       cfg.IndexPeriod,
 			BlockRange:        cfg.BlockRange,

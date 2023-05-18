@@ -8,6 +8,9 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
+var MatchNotFound = errors.New("failed to get match: not found")
+var OrderNotFound = errors.New("failed to get order: not found")
+
 func (r *indexer) handleOrderCreated(ctx context.Context, eventName string, log *types.Log) error {
 	var event gobind.SwapicaOrderCreated
 
@@ -19,7 +22,7 @@ func (r *indexer) handleOrderCreated(ctx context.Context, eventName string, log 
 	}
 
 	exists, err := r.orderExists(event.Order.OrderId.Int64())
-	if err != nil {
+	if err != nil && err.Error() != OrderNotFound.Error() {
 		return errors.Wrap(err, "failed to check if order exists")
 	}
 	if exists {
@@ -44,7 +47,7 @@ func (r *indexer) handleOrderUpdated(ctx context.Context, eventName string, log 
 	}
 
 	exists, err := r.orderExists(event.OrderId.Int64())
-	if err != nil {
+	if err != nil && err.Error() != OrderNotFound.Error() {
 		return errors.Wrap(err, "failed to check if order exists")
 	}
 	if exists {
@@ -69,7 +72,7 @@ func (r *indexer) handleMatchCreated(ctx context.Context, eventName string, log 
 	}
 
 	exists, err := r.matchExists(event.Match.MatchId.Int64())
-	if err != nil {
+	if err != nil && err.Error() != MatchNotFound.Error() {
 		return errors.Wrap(err, "failed to check if match exists")
 	}
 	if exists {
@@ -94,7 +97,7 @@ func (r *indexer) handleMatchUpdated(ctx context.Context, eventName string, log 
 	}
 
 	exists, err := r.matchExists(event.MatchId.Int64())
-	if err != nil {
+	if err != nil && err.Error() != MatchNotFound.Error() {
 		return errors.Wrap(err, "failed to check if match exists")
 	}
 	if exists {

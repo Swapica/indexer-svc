@@ -31,9 +31,11 @@ func (s *service) run() error {
 		return errors.Wrap(err, "failed to get last block")
 	}
 
+	runner := newIndexer(s.cfg, last)
+
 	running.WithBackOff(
 		context.Background(), s.log, "indexer",
-		newIndexer(s.cfg, last).run,
+		runner.run,
 		s.cfg.Network().IndexPeriod, ethBlockTime, 10*time.Minute)
 	return nil
 }

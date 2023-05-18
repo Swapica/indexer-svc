@@ -65,7 +65,7 @@ func (r *indexer) orderExists(id int64) (bool, error) {
 	var order Order
 
 	if err := r.collector.Get(u, &order); err != nil {
-		return false, errors.Wrap(err, "failed to get match")
+		return false, errors.Wrap(err, "failed to get order")
 	}
 
 	return id == order.OrderID, nil

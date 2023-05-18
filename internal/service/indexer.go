@@ -23,6 +23,7 @@ type indexer struct {
 	swapica   *gobind.Swapica
 	collector *jsonapi.Connector
 	ethClient *ethclient.Client
+	wsClient  *ethclient.Client
 
 	chainID           int64
 	blockRange        uint64
@@ -48,6 +49,7 @@ func newIndexer(c config.Config, lastBlock uint64) indexer {
 		swapica:         c.Network().Swapica,
 		collector:       c.Collector(),
 		ethClient:       c.Network().EthClient,
+		wsClient:        c.Network().WsClient,
 		chainID:         c.Network().ChainID,
 		blockRange:      c.Network().BlockRange,
 		lastBlock:       lastBlock,
@@ -73,7 +75,7 @@ func (r *indexer) run(ctx context.Context) error {
 	}
 
 	newEvents := make(chan types.Log, 1024)
-	sub, err := r.ethClient.SubscribeFilterLogs(ctx, r.filters(), newEvents)
+	sub, err := r.wsClient.SubscribeFilterLogs(ctx, r.filters(), newEvents)
 	if err != nil {
 		return errors.Wrap(err, "failed to subscribe to logs")
 	}
