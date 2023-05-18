@@ -33,10 +33,18 @@ func (s *service) run() error {
 
 	runner := newIndexer(s.cfg, last)
 
-	running.WithBackOff(
-		context.Background(), s.log, "indexer",
-		runner.run,
-		s.cfg.Network().IndexPeriod, ethBlockTime, 10*time.Minute)
+	if s.cfg.Network().WsClient != nil {
+		running.WithBackOff(
+			context.Background(), s.log, "indexer",
+			runner.run,
+			s.cfg.Network().IndexPeriod, ethBlockTime, 10*time.Minute)
+	} else {
+		running.WithBackOff(
+			context.Background(), s.log, "indexer",
+			runner.runWithoutWs,
+			s.cfg.Network().IndexPeriod, ethBlockTime, 10*time.Minute)
+	}
+
 	return nil
 }
 

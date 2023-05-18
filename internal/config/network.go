@@ -31,13 +31,14 @@ func (c *config) Network() Network {
 	return c.networkOnce.Do(func() interface{} {
 		var cfg struct {
 			RPC               string         `fig:"rpc,required"`
-			WS                string         `fig:"ws,required"`
 			Contract          common.Address `fig:"contract,required"`
 			ChainID           int64          `fig:"chain_id,required"`
+			UseWs             bool           `fig:"use_websocket,required"`
 			IndexPeriod       time.Duration  `fig:"index_period,required"`
 			BlockRange        uint64         `fig:"block_range"`
 			OverrideLastBlock *uint64        `fig:"override_last_block"`
 			RequestTimeout    time.Duration  `fig:"request_timeout"`
+			WS                string         `fig:"ws,required"`
 		}
 
 		err := figure.Out(&cfg).
@@ -55,10 +56,6 @@ func (c *config) Network() Network {
 		if err != nil {
 			panic(errors.Wrap(err, "failed to connect to RPC provider"))
 		}
-		wsCli, err := ethclient.Dial(cfg.WS)
-		if err != nil {
-			panic(errors.Wrap(err, "failed to connect to RPC provider"))
-		}
 		s, err := gobind.NewSwapica(cfg.Contract, cli)
 		if err != nil {
 			panic(errors.Wrap(err, "failed to create contract caller"))
@@ -66,6 +63,14 @@ func (c *config) Network() Network {
 
 		if cfg.RequestTimeout == 0 {
 			cfg.RequestTimeout = defaultRequestTimeout
+		}
+
+		var wsCli *ethclient.Client
+		if cfg.UseWs {
+			wsCli, err = ethclient.Dial(cfg.WS)
+			if err != nil {
+				panic(errors.Wrap(err, "failed to connect to RPC provider"))
+			}
 		}
 
 		return Network{

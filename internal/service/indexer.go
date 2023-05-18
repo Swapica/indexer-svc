@@ -30,10 +30,10 @@ type indexer struct {
 	lastBlock         uint64
 	lastBlockOutdated bool
 	requestTimeout    time.Duration
-
-	handlers        map[string]Handler
-	swapicaAbi      abi.ABI
-	contractAddress common.Address
+	handlers          map[string]Handler
+	swapicaAbi        abi.ABI
+	contractAddress   common.Address
+	indexPeriod       time.Duration
 }
 
 type Handler func(ctx context.Context, eventName string, log *types.Log) error
@@ -56,6 +56,7 @@ func newIndexer(c config.Config, lastBlock uint64) indexer {
 		requestTimeout:  c.Network().RequestTimeout,
 		swapicaAbi:      swapicaAbi,
 		contractAddress: c.Network().ContractAddress,
+		indexPeriod:     c.Network().IndexPeriod,
 	}
 
 	indexerInstance.handlers = map[string]Handler{
@@ -92,6 +93,45 @@ func (r *indexer) run(ctx context.Context) error {
 	return nil
 }
 
+func (r *indexer) runWithoutWs(ctx context.Context) error {
+	lastChainBlock, err := r.ethClient.BlockNumber(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to get last block number")
+	}
+
+	if err := r.handleUnprocessedEvents(ctx, lastChainBlock); err != nil {
+		return errors.Wrap(err, "failed to handle unprocessed events")
+	}
+
+	ticker := time.NewTicker(r.indexPeriod)
+	filters := r.filters()
+
+	for range ticker.C {
+		lastChainBlock, err = r.ethClient.BlockNumber(ctx)
+		if err != nil {
+			return errors.Wrap(err, "failed to get last block number")
+		}
+
+		filters.FromBlock = big.NewInt(int64(r.lastBlock) + 1)
+		filters.ToBlock = big.NewInt(int64(lastChainBlock))
+
+		logs, err := r.ethClient.FilterLogs(ctx, filters)
+		if err != nil {
+			return errors.Wrap(err, "failed to get filter logs")
+		}
+
+		for _, log := range logs {
+			if err := r.handleEvent(ctx, log); err != nil {
+				return errors.Wrap(err, "failed to handle event")
+			}
+		}
+
+		r.lastBlock = lastChainBlock
+	}
+
+	return nil
+}
+
 func (r *indexer) handleUnprocessedEvents(
 	ctx context.Context, lastChainBlock uint64,
 ) error {
@@ -118,6 +158,7 @@ func (r *indexer) handleUnprocessedEvents(
 				}
 			}
 		}
+		r.lastBlock = lastChainBlock
 		return nil
 	}
 
@@ -134,6 +175,7 @@ func (r *indexer) handleUnprocessedEvents(
 			return errors.Wrap(err, "failed to handle event")
 		}
 	}
+	r.lastBlock = lastChainBlock
 
 	return nil
 }
@@ -151,6 +193,7 @@ func (r *indexer) waitForEvents(
 			if err := r.handleEvent(ctx, event); err != nil {
 				return errors.Wrap(err, "failed to handle event")
 			}
+			r.lastBlock = event.BlockNumber
 		}
 	}
 }
