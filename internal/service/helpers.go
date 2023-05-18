@@ -14,6 +14,8 @@ import (
 	"strconv"
 )
 
+var NotFound = errors.New("not found")
+
 func (r *indexer) filters() ethereum.FilterQuery {
 	topics := make([]common.Hash, 0, len(r.handlers))
 	for eventName := range r.handlers {
@@ -64,7 +66,8 @@ func (r *indexer) orderExists(id int64) (bool, error) {
 
 	var order Order
 
-	if err := r.collector.Get(u, &order); err != nil {
+	err = r.collector.Get(u, &order)
+	if err != nil && err.Error() != NotFound.Error() {
 		return false, errors.Wrap(err, "failed to get order")
 	}
 
@@ -102,7 +105,8 @@ func (r *indexer) matchExists(id int64) (bool, error) {
 
 	var match Match
 
-	if err := r.collector.Get(u, &match); err != nil {
+	err = r.collector.Get(u, &match)
+	if err != nil && err.Error() != NotFound.Error() {
 		return false, errors.Wrap(err, "failed to get match")
 	}
 

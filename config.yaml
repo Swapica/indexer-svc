@@ -8,6 +8,7 @@ collector:
 
 network:
   rpc: "http://rpc-proxy/integrations/rpc-proxy/goerli"
+  ws: "wss://goerli.infura.io/ws/v3/" # required to subscribe to blocks
   contract: "Swapica address"
   chain_id: 5
   index_period: 30s # period of contract calls for fetching events, should be > average_block_time

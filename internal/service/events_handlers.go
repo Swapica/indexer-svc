@@ -2,14 +2,14 @@ package service
 
 import (
 	"context"
+	"math/big"
+	"strconv"
+
 	"github.com/Swapica/indexer-svc/internal/gobind"
 	"github.com/ethereum/go-ethereum/core/types"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
-
-var MatchNotFound = errors.New("failed to get match: not found")
-var OrderNotFound = errors.New("failed to get order: not found")
 
 func (r *indexer) handleOrderCreated(ctx context.Context, eventName string, log *types.Log) error {
 	var event gobind.SwapicaOrderCreated
@@ -22,7 +22,7 @@ func (r *indexer) handleOrderCreated(ctx context.Context, eventName string, log 
 	}
 
 	exists, err := r.orderExists(event.Order.OrderId.Int64())
-	if err != nil && err.Error() != OrderNotFound.Error() {
+	if err != nil {
 		return errors.Wrap(err, "failed to check if order exists")
 	}
 	if exists {
@@ -46,15 +46,12 @@ func (r *indexer) handleOrderUpdated(ctx context.Context, eventName string, log 
 		})
 	}
 
-	exists, err := r.orderExists(event.OrderId.Int64())
-	if err != nil && err.Error() != OrderNotFound.Error() {
-		return errors.Wrap(err, "failed to check if order exists")
-	}
-	if exists {
-		return nil
+	id, err := strconv.ParseInt(log.Topics[1].String(), 0, 64)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse order id from topic")
 	}
 
-	if err = r.updateOrder(ctx, event.OrderId, event.Status); err != nil {
+	if err = r.updateOrder(ctx, big.NewInt(id), event.Status); err != nil {
 		return errors.Wrap(err, "failed to index order")
 	}
 
@@ -72,7 +69,7 @@ func (r *indexer) handleMatchCreated(ctx context.Context, eventName string, log 
 	}
 
 	exists, err := r.matchExists(event.Match.MatchId.Int64())
-	if err != nil && err.Error() != MatchNotFound.Error() {
+	if err != nil {
 		return errors.Wrap(err, "failed to check if match exists")
 	}
 	if exists {
@@ -96,15 +93,12 @@ func (r *indexer) handleMatchUpdated(ctx context.Context, eventName string, log 
 		})
 	}
 
-	exists, err := r.matchExists(event.MatchId.Int64())
-	if err != nil && err.Error() != MatchNotFound.Error() {
-		return errors.Wrap(err, "failed to check if match exists")
-	}
-	if exists {
-		return nil
+	id, err := strconv.ParseInt(log.Topics[1].String(), 0, 64)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse match id from topic")
 	}
 
-	if err = r.updateMatch(ctx, event.MatchId, event.Status); err != nil {
+	if err = r.updateMatch(ctx, big.NewInt(id), event.Status); err != nil {
 		return errors.Wrap(err, "failed to update match order")
 	}
 
