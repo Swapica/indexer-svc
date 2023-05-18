@@ -51,7 +51,6 @@ func newIndexer(c config.Config, lastBlock uint64) indexer {
 		ethClient:       c.Network().EthClient,
 		wsClient:        c.Network().WsClient,
 		chainID:         c.Network().ChainID,
-		blockRange:      c.Network().BlockRange,
 		lastBlock:       lastBlock,
 		requestTimeout:  c.Network().RequestTimeout,
 		swapicaAbi:      swapicaAbi,
