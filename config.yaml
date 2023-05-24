@@ -1,0 +1,19 @@
+log:
+  level: debug
+  disable_sentry: true
+
+collector:
+  endpoint: "http://order-aggregator/integrations/order-aggregator"
+  request_timeout: 1s
+
+network:
+  rpc: "http://rpc-proxy/integrations/rpc-proxy/goerli"
+  contract: "Swapica address"
+  chain_id: 5
+  index_period: 30s # period of contract calls for fetching events, should be > average_block_time
+  use_websocket: true
+  ws: "wss://goerli.infura.io/ws/v3/" # required to subscribe to blocks
+  override_last_block: "8931015"
+  # optional fields
+  block_range: 3000 # max difference between start and end block on eth_getLogs call, e.g. for Fuji Ankr RPC it's 3000
+  request_timeout: 3s
