@@ -20,9 +20,6 @@ type service struct {
 	cfg config.Config
 }
 
-const ethBlockTime = 13 * time.Second
-const defaultLastBlock = 8483496 // Goerli's latest block of tx with no events at this moment
-
 func (s *service) run() error {
 	s.log.Info("Service started")
 
@@ -37,12 +34,12 @@ func (s *service) run() error {
 		running.WithBackOff(
 			context.Background(), s.log, "indexer",
 			runner.run,
-			s.cfg.Network().IndexPeriod, ethBlockTime, 10*time.Minute)
+			s.cfg.Network().IndexPeriod, s.cfg.Network().IndexPeriod, 10*time.Minute)
 	} else {
 		running.WithBackOff(
 			context.Background(), s.log, "indexer",
 			runner.runWithoutWs,
-			s.cfg.Network().IndexPeriod, ethBlockTime, 10*time.Minute)
+			s.cfg.Network().IndexPeriod, s.cfg.Network().IndexPeriod, 10*time.Minute)
 	}
 
 	return nil
@@ -62,19 +59,15 @@ func Run(cfg config.Config) {
 }
 
 func (s *service) getLastBlock() (uint64, error) {
-	last := s.cfg.Network().OverrideLastBlock
-	if last != nil {
-		return *last, nil
-	}
 	// No error can occur when parsing int64 + const_string
 	path, _ := url.Parse(strconv.FormatInt(s.cfg.Network().ChainID, 10) + "/block")
 
 	var resp resources.BlockResponse
 	if err := s.cfg.Collector().Get(path, &resp); err != nil {
 		if err, ok := err.(cerrors.Error); ok && err.Status() == http.StatusNotFound {
-			s.log.WithField("default_last_block", defaultLastBlock).
+			s.log.WithField("default_last_block", s.cfg.Network().OverrideLastBlock).
 				Warn("last block should be set either in orders DB or in override_last_block config field, using default")
-			return defaultLastBlock, nil
+			return s.cfg.Network().OverrideLastBlock, nil
 		}
 		return 0, errors.Wrap(err, "failed to get last block from collector")
 	}

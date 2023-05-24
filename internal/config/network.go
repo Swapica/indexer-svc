@@ -20,7 +20,7 @@ type Network struct {
 	ChainID           int64
 	IndexPeriod       time.Duration
 	BlockRange        uint64
-	OverrideLastBlock *uint64
+	OverrideLastBlock uint64
 	RequestTimeout    time.Duration
 }
 
@@ -36,7 +36,7 @@ func (c *config) Network() Network {
 			UseWs             bool           `fig:"use_websocket,required"`
 			IndexPeriod       time.Duration  `fig:"index_period,required"`
 			BlockRange        uint64         `fig:"block_range"`
-			OverrideLastBlock *uint64        `fig:"override_last_block"`
+			OverrideLastBlock uint64         `fig:"override_last_block"`
 			RequestTimeout    time.Duration  `fig:"request_timeout"`
 			WS                string         `fig:"ws,required"`
 		}
