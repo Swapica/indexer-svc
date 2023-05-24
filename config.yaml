@@ -11,7 +11,9 @@ network:
   contract: "Swapica address"
   chain_id: 5
   index_period: 30s # period of contract calls for fetching events, should be > average_block_time
+  use_websocket: true
+  ws: "wss://goerli.infura.io/ws/v3/" # required to subscribe to blocks
+  override_last_block: "8931015"
   # optional fields
   block_range: 3000 # max difference between start and end block on eth_getLogs call, e.g. for Fuji Ankr RPC it's 3000
-  override_last_block: "8931015" # if set, updates the last block in DB and catches up from it; need to use on sync problems
   request_timeout: 3s

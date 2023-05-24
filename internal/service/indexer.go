@@ -2,18 +2,18 @@ package service
 
 import (
 	"context"
-	"net/http"
-	"net/url"
-	"strconv"
+	"math/big"
+	"strings"
 	"time"
 
 	"github.com/Swapica/indexer-svc/internal/config"
 	"github.com/Swapica/indexer-svc/internal/gobind"
-	"github.com/Swapica/indexer-svc/internal/service/requests"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	jsonapi "gitlab.com/distributed_lab/json-api-connector"
-	"gitlab.com/distributed_lab/json-api-connector/cerrors"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
@@ -23,126 +23,209 @@ type indexer struct {
 	swapica   *gobind.Swapica
 	collector *jsonapi.Connector
 	ethClient *ethclient.Client
+	wsClient  *ethclient.Client
 
 	chainID           int64
 	blockRange        uint64
 	lastBlock         uint64
 	lastBlockOutdated bool
 	requestTimeout    time.Duration
+	handlers          map[string]Handler
+	swapicaAbi        abi.ABI
+	contractAddress   common.Address
+	indexPeriod       time.Duration
 }
 
+type Handler func(ctx context.Context, eventName string, log *types.Log) error
+
 func newIndexer(c config.Config, lastBlock uint64) indexer {
-	return indexer{
-		log:            c.Log(),
-		swapica:        c.Network().Swapica,
-		collector:      c.Collector(),
-		ethClient:      c.Network().EthClient,
-		chainID:        c.Network().ChainID,
-		blockRange:     c.Network().BlockRange,
-		lastBlock:      lastBlock,
-		requestTimeout: c.Network().RequestTimeout,
+	swapicaAbi, err := abi.JSON(strings.NewReader(gobind.SwapicaMetaData.ABI))
+	if err != nil {
+		panic(errors.Wrap(err, "failed to get ABI"))
 	}
+
+	indexerInstance := indexer{
+		log:             c.Log(),
+		swapica:         c.Network().Swapica,
+		collector:       c.Collector(),
+		ethClient:       c.Network().EthClient,
+		wsClient:        c.Network().WsClient,
+		chainID:         c.Network().ChainID,
+		blockRange:      c.Network().BlockRange,
+		lastBlock:       lastBlock,
+		requestTimeout:  c.Network().RequestTimeout,
+		swapicaAbi:      swapicaAbi,
+		contractAddress: c.Network().ContractAddress,
+		indexPeriod:     c.Network().IndexPeriod,
+	}
+
+	indexerInstance.handlers = map[string]Handler{
+		"OrderCreated": indexerInstance.handleOrderCreated,
+		"OrderUpdated": indexerInstance.handleOrderUpdated,
+		"MatchCreated": indexerInstance.handleMatchCreated,
+		"MatchUpdated": indexerInstance.handleMatchUpdated,
+	}
+
+	return indexerInstance
 }
 
 func (r *indexer) run(ctx context.Context) error {
-	var err error
-	currentBlock := r.lastBlock
-	opts := &bind.FilterOpts{Start: r.lastBlock + 1}
-
-	defer func() { r.updateLastBlock(ctx) }()
-
-	// For Infura nodes it is often no need to limit block range, therefore it's better to save requests
-	if r.blockRange != 0 {
-		if currentBlock, err = r.getNetworkLatestBlock(ctx); err != nil {
-			return errors.Wrap(err, "failed to get the latest block from the network")
-		}
-		log := r.log.WithField("current_block", currentBlock)
-
-		if currentBlock == r.lastBlock {
-			log.Info("current block is equal to the saved one, index_period might be too short; skipping iteration")
-			return nil
-		}
-
-		if currentBlock > r.lastBlock+r.blockRange+1 {
-			log.Info("block range is too wide, step-by-step catch-up required")
-			err = r.catchUp(ctx, currentBlock)
-			if err != nil {
-				return errors.Wrap(err, "failed to catch up the network")
-			}
-			return nil
-		}
-		r.lastBlock = currentBlock
+	lastChainBlock, err := r.ethClient.BlockNumber(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to get last block number")
 	}
 
-	if err = r.handleEvents(ctx, opts); err != nil {
-		return errors.Wrap(err, "failed to handle events")
+	newEvents := make(chan types.Log, 1024)
+	sub, err := r.wsClient.SubscribeFilterLogs(ctx, r.filters(), newEvents)
+	if err != nil {
+		return errors.Wrap(err, "failed to subscribe to logs")
+	}
+	defer sub.Unsubscribe()
+
+	if err := r.handleUnprocessedEvents(ctx, lastChainBlock); err != nil {
+		return errors.Wrap(err, "failed to handle unprocessed events")
 	}
 
-	r.lastBlockOutdated = r.lastBlockOutdated || r.lastBlock != currentBlock
+	if err := r.waitForEvents(ctx, sub, newEvents); err != nil {
+		return errors.Wrap(err, "failed to wait for unprocessed events")
+	}
+
 	return nil
 }
 
-func (r *indexer) handleEvents(ctx context.Context, opts *bind.FilterOpts) error {
-	toBlock := "latest"
-	if opts.End != nil {
-		toBlock = strconv.FormatUint(*opts.End, 10)
-	}
-	r.log.Debugf("filtering events with fromBlock=%d and toBlock=%s", opts.Start, toBlock)
-
-	child, cancel := context.WithTimeout(ctx, r.requestTimeout)
-	defer cancel()
-	opts.Context = child
-
-	if err := r.handleCreatedOrders(ctx, opts); err != nil {
-		return errors.Wrap(err, "failed to handle created orders")
-	}
-
-	if err := r.handleCreatedMatches(ctx, opts); err != nil {
-		return errors.Wrap(err, "failed to handle created match orders")
-	}
-
-	if err := r.handleUpdatedOrders(ctx, opts); err != nil {
-		return errors.Wrap(err, "failed to handle updated orders")
-	}
-
-	err := r.handleUpdatedMatches(ctx, opts)
-	return errors.Wrap(err, "failed to handle updated match orders")
-}
-
-func (r *indexer) getNetworkLatestBlock(ctx context.Context) (uint64, error) {
-	child, cancel := context.WithTimeout(ctx, r.requestTimeout)
-	defer cancel()
-
-	n, err := r.ethClient.BlockNumber(child)
+func (r *indexer) runWithoutWs(ctx context.Context) error {
+	lastChainBlock, err := r.ethClient.BlockNumber(ctx)
 	if err != nil {
-		return n, errors.Wrap(err, "failed to get eth_blockNumber")
-	}
-	if n < r.lastBlock {
-		return n, errors.Errorf("given saved_last_block=%d is greater than network_latest_block=%d", r.lastBlock, n)
+		return errors.Wrap(err, "failed to get last block number")
 	}
 
-	return n, nil
+	if err := r.handleUnprocessedEvents(ctx, lastChainBlock); err != nil {
+		return errors.Wrap(err, "failed to handle unprocessed events")
+	}
+
+	ticker := time.NewTicker(r.indexPeriod)
+	filters := r.filters()
+
+	for range ticker.C {
+		lastChainBlock, err = r.ethClient.BlockNumber(ctx)
+		if err != nil {
+			return errors.Wrap(err, "failed to get last block number")
+		}
+
+		filters.FromBlock = big.NewInt(int64(r.lastBlock) + 1)
+		filters.ToBlock = big.NewInt(int64(lastChainBlock))
+
+		logs, err := r.ethClient.FilterLogs(ctx, filters)
+		if err != nil {
+			return errors.Wrap(err, "failed to get filter logs")
+		}
+
+		for _, log := range logs {
+			if err := r.handleEvent(ctx, log); err != nil {
+				return errors.Wrap(err, "failed to handle event")
+			}
+		}
+
+		r.lastBlock = lastChainBlock
+	}
+
+	return nil
 }
 
-func (r *indexer) updateLastBlock(ctx context.Context) {
-	log := r.log.WithField("last_block", r.lastBlock)
-	if !r.lastBlockOutdated {
-		log.Debug("no updates of the last block")
-		return
+func (r *indexer) handleUnprocessedEvents(
+	ctx context.Context, lastChainBlock uint64,
+) error {
+	filters := r.filters()
+
+	if r.blockRange != 0 {
+		for start := r.lastBlock + 1; start <= lastChainBlock; start += r.blockRange + 1 {
+			end := start + r.blockRange
+			if end > lastChainBlock {
+				end = lastChainBlock
+			}
+
+			filters.FromBlock = new(big.Int).SetUint64(start)
+			filters.ToBlock = new(big.Int).SetUint64(end)
+
+			logs, err := r.ethClient.FilterLogs(ctx, filters)
+			if err != nil {
+				return errors.Wrap(err, "failed to get filter logs")
+			}
+
+			for _, log := range logs {
+				if err := r.handleEvent(ctx, log); err != nil {
+					return errors.Wrap(err, "failed to handle event")
+				}
+			}
+		}
+		r.lastBlock = lastChainBlock
+		return nil
 	}
 
-	body := requests.NewUpdateBlock(r.lastBlock)
-	u, _ := url.Parse(strconv.FormatInt(r.chainID, 10) + "/block")
-	err := r.collector.PostJSON(u, body, ctx, nil)
+	filters.FromBlock = new(big.Int).SetUint64(r.lastBlock)
+	filters.ToBlock = new(big.Int).SetUint64(lastChainBlock + 1)
+
+	logs, err := r.ethClient.FilterLogs(ctx, filters)
 	if err != nil {
-		log.WithError(err).Error("failed to save last block")
-		return
+		return errors.Wrap(err, "failed to get filter logs")
 	}
-	r.lastBlockOutdated = false
-	log.Debug("successfully saved last block")
+
+	for _, log := range logs {
+		if err := r.handleEvent(ctx, log); err != nil {
+			return errors.Wrap(err, "failed to handle event")
+		}
+	}
+	r.lastBlock = lastChainBlock
+
+	return nil
 }
 
-func isConflict(err error) bool {
-	c, ok := err.(cerrors.Error)
-	return ok && c.Status() == http.StatusConflict
+func (r *indexer) waitForEvents(
+	ctx context.Context, sub ethereum.Subscription, events <-chan types.Log,
+) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case err := <-sub.Err():
+			return errors.Wrap(err, "log subscription failed")
+		case event := <-events:
+			if err := r.handleEvent(ctx, event); err != nil {
+				return errors.Wrap(err, "failed to handle event")
+			}
+			r.lastBlock = event.BlockNumber
+		}
+	}
+}
+
+func (r *indexer) handleEvent(ctx context.Context, log types.Log) error {
+	topic := log.Topics[0] // First topic must be a hashed signature of the event
+
+	event, err := r.swapicaAbi.EventByID(topic)
+	if err != nil {
+		return errors.Wrap(err, "failed to get event by topic", logan.F{
+			"topic": topic.Hex(),
+		})
+	}
+
+	handler, ok := r.handlers[event.Name]
+	if !ok {
+		return errors.From(errors.New("no handler for such event name"),
+			logan.F{
+				"event_name": event.Name,
+			})
+	}
+
+	if err := handler(ctx, event.Name, &log); err != nil {
+		return errors.Wrap(err, "handling of event failed", logan.F{
+			"topic":      topic.Hex(),
+			"event_name": event.Name,
+		})
+	}
+
+	if err := r.updateLastBlock(ctx, log.BlockNumber); err != nil {
+		return errors.Wrap(err, "failed to update last block")
+	}
+
+	return nil
 }
