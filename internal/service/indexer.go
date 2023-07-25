@@ -162,7 +162,7 @@ func (r *indexer) handleUnprocessedEvents(
 		return nil
 	}
 
-	filters.FromBlock = new(big.Int).SetUint64(r.lastBlock)
+	filters.FromBlock = new(big.Int).SetUint64(r.lastBlock + 1)
 	filters.ToBlock = new(big.Int).SetUint64(lastChainBlock + 1)
 
 	logs, err := r.ethClient.FilterLogs(ctx, filters)
