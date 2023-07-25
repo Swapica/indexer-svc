@@ -34,12 +34,12 @@ func (s *service) run() error {
 		running.WithBackOff(
 			context.Background(), s.log, "indexer",
 			runner.run,
-			s.cfg.Network().IndexPeriod, s.cfg.Network().IndexPeriod, 10*time.Minute)
+			s.cfg.Network().IndexPeriod, s.cfg.Network().IndexPeriod, time.Minute)
 	} else {
 		running.WithBackOff(
 			context.Background(), s.log, "indexer",
 			runner.runWithoutWs,
-			s.cfg.Network().IndexPeriod, s.cfg.Network().IndexPeriod, 10*time.Minute)
+			s.cfg.Network().IndexPeriod, s.cfg.Network().IndexPeriod, time.Minute)
 	}
 
 	return nil
